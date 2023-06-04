@@ -1,4 +1,4 @@
-# Intellisense for josim README
+# Intellisense for josim (VScode extension)
 
 This is a intellisense for inp files
 
