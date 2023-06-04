@@ -1,0 +1,278 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "josim",
+	"patterns": [
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#topcells"
+		},
+		{
+			"include": "#subckt"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#controls"
+		}
+	],
+	"repository": {
+		"constants": {
+			"patterns": [
+				{
+					"match": "(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA).*(\\S+)",
+					"name": "invalid"
+				},
+				{
+					"match": "(\\S+).*(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA)",
+					"name": "invalid"
+				},
+				{
+					"match": "(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA)(\\W|\\n)*",
+					"name": "constant.language"
+				}
+			]
+		},
+		"controls": {
+			"patterns": [
+				{
+					"begin": "(\\.tran)\\s+(.+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.control"
+						},
+						"2": {
+							"name": "string.quoted.other"
+						}
+					}
+				},
+				{
+					"begin": "(\\.print)\\s+(\\S+)\\s+(\\S+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "storage.type"
+						},
+						"2": {
+							"name": "variable"
+						},
+						"3": {
+							"name": "string.quoted.other"
+						}
+					}
+				},
+				{
+					"begin": "(\\.model)\\s+(.+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "entity.name.type"
+						},
+						"2": {
+							"name": "string.quoted.other"
+						}
+					}
+				},
+				{
+					"begin": "(\\.param)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "entity.name.type"
+						}
+					},
+					"patterns": [
+						{
+							"match": "(\\S+)\\s*=\\s*(\\S+)",
+							"captures": {
+								"1": {
+									"name": "variable.name"
+								},
+								"2": {
+									"patterns": [
+										{
+											"include": "#constants"
+										},
+										{
+											"name": "constant.numeric"
+										}
+									]
+								}
+							}
+						}
+					]
+				},
+				{
+					"begin": "(\\.include)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.control"
+						}
+					},
+					"patterns": [
+						{
+							"match": "(.+)?",
+							"name": "string.quoted.other"
+						}
+					]
+				}
+			]
+		},
+		"topcells": {
+			"patterns": [
+				{
+					"match": "\\*+ top cell",
+					"name": "storage.type.josim"
+				},
+				{
+					"match": "\\s([\\w^0-9][\\w]+)?\\s",
+					"name": "entity.name.function"
+				},
+				{
+					"match": "[0-9]+",
+					"name": "constant.numeric"
+				},
+				{
+					"begin": "^((R|L|B|C)\\S+)\\s",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "variable.name"
+						}
+					},
+					"patterns": [
+						{
+							"match": "\\*{1,}.+",
+							"name": "comment"
+						},
+						{
+							"match": "[0-9]+\\.?[0-9]*",
+							"name": "constant.numeric"
+						}
+					]
+				},
+				{
+					"begin": "(X\\S+)\\s+(\\S+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "variable.name"
+						},
+						"2": {
+							"name": "entity.name.function"
+						}
+					},
+					"patterns": [
+						{
+							"match": "[0-9]+",
+							"name": "constant.numeric"
+						}
+					]
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.josim",
+					"match": "\\b(if|while|for|return)\\b"
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"begin": "\\*{1,}",
+					"end": "\\n",
+					"name": "comment"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.josim",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.josim",
+					"match": "\\\\."
+				}
+			]
+		},
+		"subckt": {
+			"begin": "(\\.subckt)",
+			"end": "(\\.ends)",
+			"beginCaptures": {
+				"1": {
+					"name": "entity.name.type"
+				},
+				"2": {
+					"name": "entity.name.function"
+				}
+			},
+			"endCaptures": {
+				"1": {
+					"name": "entity.name.type"
+				}
+			},
+			"patterns": [
+				{
+					"match": "\\s([\\w^0-9][\\w]+)?\\s",
+					"name": "entity.name.function"
+				},
+				{
+					"match": "[0-9]+",
+					"name": "constant.numeric"
+				},
+				{
+					"begin": "((R|L|B|C)\\S+)\\s",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "variable.name"
+						}
+					},
+					"patterns": [
+						{
+							"match": "\\*{1,}.+",
+							"name": "comment"
+						},
+						{
+							"match": "[0-9]+\\.?[0-9]*",
+							"name": "constant.numeric"
+						}
+					]
+				},
+				{
+					"begin": "(X\\S+)\\s+(\\S+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "variable.name"
+						},
+						"2": {
+							"name": "entity.name.function"
+						}
+					},
+					"patterns": [
+						{
+							"match": "[0-9]+",
+							"name": "constant.numeric"
+						}
+					]
+				}
+			]
+		}
+	},
+	"scopeName": "source.jsm"
+}

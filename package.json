@@ -1,0 +1,32 @@
+{
+  "name": "josim",
+  "displayName": "Intellisense for josim",
+  "description": "A intellisense for josim input text files",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.78.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "josim",
+      "aliases": ["josim-inp", "josim"],
+      "extensions": [".jsm",".josim"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "josim",
+      "scopeName": "source.jsm",
+      "path": "./syntaxes/josim.tmLanguage.json"
+    }],
+    "snippets": [
+      {
+        "language": "josim",
+        "scopeName":"source.jsm",
+        "path": "./josim-snippets.json"
+      }
+    ]
+  }
+}
