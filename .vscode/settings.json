@@ -1,0 +1,17 @@
+{
+    "[json]": {
+        "editor.quickSuggestions": {
+            "strings": true,
+        },
+        "editor.suggest.insertMode": "insert",
+        
+    },
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/mnt/c/users/zacky/.vscode/extensions/Intellisense-for-josim/syntaxes/josim.tmLanguage.json"
+            ],
+            "url": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json"
+        }
+    ]
+}

@@ -28,11 +28,11 @@
 		"constants": {
 			"patterns": [
 				{
-					"match": "(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA).*(\\S+)",
+					"match": "(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA) *(\\w+)",
 					"name": "invalid"
 				},
 				{
-					"match": "(\\S+).*(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA)",
+					"match": "(\\S+)+(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA)",
 					"name": "invalid"
 				},
 				{
@@ -143,41 +143,7 @@
 					"name": "constant.numeric"
 				},
 				{
-					"begin": "^((R|L|B|C)\\S+)\\s",
-					"end": "\\n",
-					"beginCaptures": {
-						"1": {
-							"name": "variable.name"
-						}
-					},
-					"patterns": [
-						{
-							"match": "\\*{1,}.+",
-							"name": "comment"
-						},
-						{
-							"match": "[0-9]+\\.?[0-9]*",
-							"name": "constant.numeric"
-						}
-					]
-				},
-				{
-					"begin": "(X\\S+)\\s+(\\S+)",
-					"end": "\\n",
-					"beginCaptures": {
-						"1": {
-							"name": "variable.name"
-						},
-						"2": {
-							"name": "entity.name.function"
-						}
-					},
-					"patterns": [
-						{
-							"match": "[0-9]+",
-							"name": "constant.numeric"
-						}
-					]
+					"include": "#componetns"
 				}
 			]
 		},
@@ -227,52 +193,82 @@
 			},
 			"patterns": [
 				{
-					"match": "\\s([\\w^0-9][\\w]+)?\\s",
-					"name": "entity.name.function"
-				},
-				{
-					"match": "[0-9]+",
-					"name": "constant.numeric"
-				},
-				{
-					"begin": "((R|L|B|C)\\S+)\\s",
-					"end": "\\n",
-					"beginCaptures": {
-						"1": {
-							"name": "variable.name"
-						}
-					},
-					"patterns": [
-						{
-							"match": "\\*{1,}.+",
-							"name": "comment"
-						},
-						{
-							"match": "[0-9]+\\.?[0-9]*",
-							"name": "constant.numeric"
-						}
-					]
-				},
-				{
-					"begin": "(X\\S+)\\s+(\\S+)",
-					"end": "\\n",
-					"beginCaptures": {
-						"1": {
-							"name": "variable.name"
-						},
-						"2": {
-							"name": "entity.name.function"
-						}
-					},
-					"patterns": [
-						{
-							"match": "[0-9]+",
-							"name": "constant.numeric"
-						}
-					]
+					"include": "#componetns"
 				}
 			]
 		}
+	},
+	"componetns": {
+		"patterns": [
+			{
+				"match": "\\s([\\w^0-9][\\w]+)?\\s",
+				"name": "entity.name.function"
+			},
+			{
+				"match": "[0-9]+",
+				"name": "constant.numeric"
+			},
+			{
+				"begin": "((R|L|B|C)\\S+)\\s",
+				"end": "\\n",
+				"beginCaptures": {
+					"1": {
+						"name": "variable.name"
+					}
+				},
+				"patterns": [
+					{
+						"match": "\\*{1,}.+",
+						"name": "comment"
+					},
+					{
+						"match": "[0-9]+\\.?[0-9]*",
+						"name": "constant.numeric"
+					}
+				]
+			},
+			{
+				"begin": "(X\\S+)\\s+(\\S+)",
+				"end": "\\n",
+				"beginCaptures": {
+					"1": {
+						"name": "variable.name"
+					},
+					"2": {
+						"name": "entity.name.function"
+					}
+				},
+				"patterns": [
+					{
+						"match": "[0-9]+",
+						"name": "constant.numeric"
+					}
+				]
+			},
+			{
+				"begin": "(V\\S+)",
+				"beginCaptures":{
+					"1":{
+						"name":"variable.name"
+					}
+				},
+				"end": "\\n",
+				"patterns": [
+					{
+						"match": "PWL\\(.+\\)",
+						"name": "string.quoted.other"
+					},
+					{
+						"match": "\\*{1,}.+",
+						"name": "comment"
+					},
+					{
+						"match": "[0-9]+\\.?[0-9]*",
+						"name": "constant.numeric"
+					}
+				]
+			}
+		]
 	},
 	"scopeName": "source.jsm"
 }
