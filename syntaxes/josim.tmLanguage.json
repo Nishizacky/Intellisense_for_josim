@@ -3,16 +3,13 @@
 	"name": "josim",
 	"patterns": [
 		{
+			"include": "#formatter variable"
+		},
+		{
 			"include": "#constants"
 		},
 		{
 			"include": "#keywords"
-		},
-		{
-			"include": "#topcells"
-		},
-		{
-			"include": "#subckt"
 		},
 		{
 			"include": "#comments"
@@ -22,9 +19,26 @@
 		},
 		{
 			"include": "#controls"
+		},
+		{
+			"include": "#components"
+		},
+		{
+			"include": "#EOF"
 		}
 	],
 	"repository": {
+		"formatter variable": {
+			"begin": "\\{{1,}",
+			"end": "\\}{1,}",
+			"name": "constant.character.escape",
+			"patterns": [
+				{
+					"match": ".+",
+					"name": "variable.name"
+				}
+			]
+		},
 		"constants": {
 			"patterns": [
 				{
@@ -43,6 +57,9 @@
 		},
 		"controls": {
 			"patterns": [
+				{
+					"include": "#subckt"
+				},
 				{
 					"begin": "(\\.tran)\\s+(.+)",
 					"end": "\\n",
@@ -128,25 +145,6 @@
 				}
 			]
 		},
-		"topcells": {
-			"patterns": [
-				{
-					"match": "\\*+ top cell",
-					"name": "storage.type.josim"
-				},
-				{
-					"match": "\\s([\\w^0-9][\\w]+)?\\s",
-					"name": "entity.name.function"
-				},
-				{
-					"match": "[0-9]+",
-					"name": "constant.numeric"
-				},
-				{
-					"include": "#componetns"
-				}
-			]
-		},
 		"keywords": {
 			"patterns": [
 				{
@@ -157,6 +155,20 @@
 		},
 		"comments": {
 			"patterns": [
+				{
+					"begin": "(\\*+\\s+top\\scell\\s*:\\s*\\S+)",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.control.less"
+						}
+					},
+					"end": "\\n",
+					"patterns": [
+						{
+							"include": "#components"
+						}
+					]
+				},
 				{
 					"begin": "\\*{1,}",
 					"end": "\\n",
@@ -176,7 +188,7 @@
 			]
 		},
 		"subckt": {
-			"begin": "(\\.subckt)",
+			"begin": "(\\.subckt)\\s+(\\S+)\\s(.+)",
 			"end": "(\\.ends)",
 			"beginCaptures": {
 				"1": {
@@ -184,6 +196,9 @@
 				},
 				"2": {
 					"name": "entity.name.function"
+				},
+				"3": {
+					"name": "constant.numeric"
 				}
 			},
 			"endCaptures": {
@@ -193,82 +208,99 @@
 			},
 			"patterns": [
 				{
-					"include": "#componetns"
+					"match": ".end[^s]+",
+					"name": "invalid"
+				},
+				{
+					"include": "#components"
+				}
+			]
+		},
+		"components": {
+			"patterns": [
+				{
+					"begin": "(X\\S+)\\s+(\\S+)(.+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "variable.other"
+						},
+						"2": {
+							"name": "entity.name.function"
+						},
+						"3": {
+							"name": "constant.numeric"
+						}
+					}
+				},
+				{
+					"begin": "(V\\w+)",
+					"beginCaptures": {
+						"1": {
+							"name": "constant.language"
+						}
+					},
+					"end": "\\n",
+					"patterns": [
+						{
+							"match": "\\s([0-9]+)\\s",
+							"name": "constant.numeric"
+						},
+						{
+							"match": "\\w+.+\\)",
+							"name": "string.quoted.other"
+						}
+					]
+				},
+				{
+					"begin": "\\*+",
+					"end": "\\n",
+					"name": "comment"
+				},
+				{
+					"begin": "(\\S+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "constant.character"
+						}
+					},
+					"patterns": [
+						{
+							"match": "\\s([0-9]+)\\s",
+							"name": "constant.numeric"
+						},
+						{
+							"match": "[0-9]+\\.?[0-9]+\\S+",
+							"name": "string.quoted.other"
+						},
+						{
+							"match": "jjmod.+=[0-9]+\\.?[0-9]+",
+							"name": "string.quoted.other"
+						},
+						{
+							"match": "\\S+",
+							"name": "comment"
+						}
+					]
+				}
+			]
+		},
+		"EOF": {
+			"begin": "(.end)",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.control"
+				}
+			},
+			"end": "\\n\\n\\z",
+			"patterns": [
+				{
+					"match": ".",
+					"name": "invalid"
 				}
 			]
 		}
-	},
-	"componetns": {
-		"patterns": [
-			{
-				"match": "\\s([\\w^0-9][\\w]+)?\\s",
-				"name": "entity.name.function"
-			},
-			{
-				"match": "[0-9]+",
-				"name": "constant.numeric"
-			},
-			{
-				"begin": "((R|L|B|C)\\S+)\\s",
-				"end": "\\n",
-				"beginCaptures": {
-					"1": {
-						"name": "variable.name"
-					}
-				},
-				"patterns": [
-					{
-						"match": "\\*{1,}.+",
-						"name": "comment"
-					},
-					{
-						"match": "[0-9]+\\.?[0-9]*",
-						"name": "constant.numeric"
-					}
-				]
-			},
-			{
-				"begin": "(X\\S+)\\s+(\\S+)",
-				"end": "\\n",
-				"beginCaptures": {
-					"1": {
-						"name": "variable.name"
-					},
-					"2": {
-						"name": "entity.name.function"
-					}
-				},
-				"patterns": [
-					{
-						"match": "[0-9]+",
-						"name": "constant.numeric"
-					}
-				]
-			},
-			{
-				"begin": "(V\\S+)",
-				"beginCaptures":{
-					"1":{
-						"name":"variable.name"
-					}
-				},
-				"end": "\\n",
-				"patterns": [
-					{
-						"match": "PWL\\(.+\\)",
-						"name": "string.quoted.other"
-					},
-					{
-						"match": "\\*{1,}.+",
-						"name": "comment"
-					},
-					{
-						"match": "[0-9]+\\.?[0-9]*",
-						"name": "constant.numeric"
-					}
-				]
-			}
-		]
 	},
 	"scopeName": "source.jsm"
 }
