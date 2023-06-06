@@ -6,25 +6,37 @@
   "engines": {
     "vscode": "^1.78.0"
   },
+  "main": "./extension.js",
+  "activationEvents": [],
   "categories": [
     "Programming Languages"
   ],
   "contributes": {
-    "languages": [{
-      "id": "josim",
-      "aliases": ["josim-inp", "josim"],
-      "extensions": [".jsm",".josim"],
-      "configuration": "./language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "josim",
-      "scopeName": "source.jsm",
-      "path": "./syntaxes/josim.tmLanguage.json"
-    }],
+    "languages": [
+      {
+        "id": "josim",
+        "aliases": [
+          "josim-inp",
+          "josim"
+        ],
+        "extensions": [
+          ".jsm",
+          ".josim"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "josim",
+        "scopeName": "source.jsm",
+        "path": "./syntaxes/josim.tmLanguage.json"
+      }
+    ],
     "snippets": [
       {
         "language": "josim",
-        "scopeName":"source.jsm",
+        "scopeName": "source.jsm",
         "path": "./josim-snippets.json"
       }
     ]
