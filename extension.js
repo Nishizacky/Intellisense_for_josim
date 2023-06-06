@@ -15,7 +15,7 @@ function findwhere(document, currentWord, mode = "loc") {
         }
         hitline++
     }
-    fs.close()
+    // fs.close()
     const uri = vscode.Uri.file(document.fileName);
     const pos = new vscode.Position(hitline, hitchar);
     const loc = new vscode.Location(uri, pos);
@@ -38,7 +38,7 @@ class JOSIM_HoverProvider {
         // const currentWord = getCurrentWord(document, position)
         // const loc = findwhere(document,position)
         // const range = new vscode.Range(start = loc,endLine=154,endCharactor = 0)
-        return Promise.resolve(new vscode.Hover(range));
+        return Promise.resolve(new vscode.Hover(currentWord));
     }
 }
 class JOSIM_DefinitionProvider {
@@ -47,6 +47,9 @@ class JOSIM_DefinitionProvider {
         const loc = findwhere(document, currentWord)
         return Promise.resolve(loc);
     }
+}
+class JOSIM_DefinitionPeekProvider{
+    provided
 }
 
 
