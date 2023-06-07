@@ -37,7 +37,7 @@
       {
         "language": "josim",
         "scopeName": "source.jsm",
-        "path": "./josim-snippets.json"
+        "path": "./syntaxes/josim-snippets.json"
       }
     ]
   }

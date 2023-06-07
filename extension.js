@@ -1,49 +1,47 @@
 const vscode = require('vscode');
-
+var textCounter = 0
 const JOSIM_MODE = { scheme: 'file', language: 'josim' };
 function findwhere(document, currentWord, mode = "loc") {
     if (currentWord == ".subckt") {
-        return Promise.resolve('This is definition.')
+        return Promise.resolve('This is the definition.')
     }
-    var text = document.getText()
-    var nonl_text = text.replace(/[\s\n]/mg, "o")
+    console.log(currentWord)
+    console.log(document)
+    var text =  document.getText()
+    var nonl_text =  text.replace(/[\s\n]/mg, "o")
     var searchStr = new RegExp(/\.include\s+(\S+)/, "g")
     var incFileName = text.match(searchStr)
     var refFileName = []
-    const test = vscode.Uri.file("C:\Users\KaiNishizaki\Desktop\JOSIM_include_test.jsm")
-    console.log(test.fileName)
     for (list in incFileName) {
         var tmp
         tmp = incFileName[list].match(/\.include\s+(\S+)/m)
         refFileName[list] = tmp[1]
     }
     for (list in refFileName) {
-        console.log(refFileName[list])
         const uri = vscode.Uri.file(refFileName[list])
-        console.log(uri.fileName)
-        let refDoc = vscode.workspace.openTextDocument(uri)
+        var  refDoc = vscode.workspace.openTextDocument(vscode.Uri.file(refFileName[list]))
         findwhere(refDoc, currentWord, mode)
-        console.log("aaa")
-        console.log("in " + refFileName[list])
     }
     var hitchar = 0
     searchStr = new RegExp("^\.subckt +" + currentWord, "m")
     const startIndex = text.search(searchStr)
     const position = document.positionAt(startIndex)
-    const uri = vscode.Uri.file(document.fileName);
+    const trueUri = vscode.Uri.file(document.fileName);
     const pos = position;
     const sub_endIndex = nonl_text.indexOf("ends", startIndex);
     const endIndex = nonl_text.indexOf("\s", sub_endIndex);
     const endposition = document.positionAt(endIndex)
-    const loc = new vscode.Location(uri, pos)
+    const loc = new vscode.Location(trueUri, pos)
+    console.log(loc)
     const range = new vscode.Range(position, endposition)
     if (mode == "loc") return loc;
-    else if (mode == "uri") return uri;
+    else if (mode == "uri") return trueUri;
     else if (mode == "hitline") return document.lineAt(position);
     else if (mode == "hitchar") return hitchar.lineAt(position).indexOf(currentWord);
     else if (mode == "range") {
         return range
-    }
+
+    } else return
 }
 
 function getCurrentWord(document, position) {
@@ -63,6 +61,9 @@ class JOSIM_HoverProvider {
         const searchStr = new RegExp("^\.subckt +" + currentWord, "m")
         const startIndex = text.search(searchStr)
         const Point = document.positionAt(startIndex);
+        if (Point == vscode.Point(0, 0)) {
+            return
+        }
         const sub_endIndex = nonl_text.indexOf("ends", startIndex);
         var endIndex = nonl_text.indexOf("\s", sub_endIndex) + 1;
         const endposition = document.positionAt(endIndex)
