@@ -26,4 +26,5 @@
       )
   }
 '''
+\.subckt ZZPSQ_jtl_1(.|\n)*?(\.ends)
   https://codelic.co/BlogDetail/RHpaTnanCJ9LLz273PKD
