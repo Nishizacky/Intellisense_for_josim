@@ -1,47 +1,79 @@
 const vscode = require('vscode');
 var textCounter = 0
 const JOSIM_MODE = { scheme: 'file', language: 'josim' };
+const subcktPattern = /^\.subckt\s+(\w+)/m;
+function findStructIdentifiers(document) {
+  const text = document.getText();
+  const matches = text.matchAll(subcktPattern);
+  for (const match of matches) {
+    const identifier = match[1];
+    structIdentifiers.push(identifier);
+  }
+}
 function findwhere(document, currentWord, mode = "loc") {
     if (currentWord == ".subckt") {
-        return Promise.resolve('This is the definition.')
+        return Promise.resolve('This is the definition.');
     }
-    console.log(currentWord)
-    console.log(document)
-    var text =  document.getText()
-    var nonl_text =  text.replace(/[\s\n]/mg, "o")
-    var searchStr = new RegExp(/\.include\s+(\S+)/, "g")
-    var incFileName = text.match(searchStr)
-    var refFileName = []
-    for (list in incFileName) {
-        var tmp
-        tmp = incFileName[list].match(/\.include\s+(\S+)/m)
-        refFileName[list] = tmp[1]
-    }
-    for (list in refFileName) {
-        const uri = vscode.Uri.file(refFileName[list])
-        var  refDoc = vscode.workspace.openTextDocument(vscode.Uri.file(refFileName[list]))
-        findwhere(refDoc, currentWord, mode)
-    }
-    var hitchar = 0
-    searchStr = new RegExp("^\.subckt +" + currentWord, "m")
-    const startIndex = text.search(searchStr)
-    const position = document.positionAt(startIndex)
-    const trueUri = vscode.Uri.file(document.fileName);
-    const pos = position;
-    const sub_endIndex = nonl_text.indexOf("ends", startIndex);
-    const endIndex = nonl_text.indexOf("\s", sub_endIndex);
-    const endposition = document.positionAt(endIndex)
-    const loc = new vscode.Location(trueUri, pos)
-    console.log(loc)
-    const range = new vscode.Range(position, endposition)
-    if (mode == "loc") return loc;
-    else if (mode == "uri") return trueUri;
-    else if (mode == "hitline") return document.lineAt(position);
-    else if (mode == "hitchar") return hitchar.lineAt(position).indexOf(currentWord);
-    else if (mode == "range") {
-        return range
 
-    } else return
+    var text = document.getText();
+    var nonl_text = text.replace(/[\s\n]/mg, "o");
+    var searchStr = new RegExp(/\.include\s+(\S+)/, "g");
+    var incFileName = text.match(searchStr) || [];
+    var refFileName = [];
+
+    for (var i = 0; i < incFileName.length; i++) {
+        var tmp = incFileName[i].match(/\.include\s+(\S+)/m);
+        refFileName[i] = tmp[1];
+    }
+
+    var promises = refFileName.map((fileName) => {
+        var tmp = vscode.Uri.file(fileName);
+        const uri = vscode.Uri.parse(tmp, true);
+        return vscode.workspace.openTextDocument(uri).then((refDoc) => {
+            return findwhere(refDoc, currentWord, mode);
+        });
+    });
+
+    return Promise.all(promises).then((results) => {
+        var returnValue = null;
+
+        for (var i = 0; i < results.length; i++) {
+            if (results[i] !== null) {
+                returnValue = results[i];
+                break;
+            }
+        }
+
+        var loc = null; // locの初期値を設定
+
+        if (refFileName.length === 0) {
+            const text = document.getText();
+            const searchStr = new RegExp("^\\.subckt +" + currentWord, "m");
+            const startIndex = text.search(searchStr);
+            const position = document.positionAt(startIndex);
+            const trueUri = vscode.Uri.file(document.fileName);
+            const pos = position;
+            const sub_endIndex = nonl_text.indexOf("ends", startIndex);
+            const endIndex = nonl_text.indexOf("\s", sub_endIndex);
+            const endposition = document.positionAt(endIndex);
+            const range = new vscode.Range(position, endposition);
+            loc = new vscode.Location(trueUri, pos); // locの値を設定
+            const hitchar = document.lineAt(position).text.indexOf(currentWord);
+
+            if (mode === "loc") return loc;
+            else if (mode === "uri") return trueUri;
+            else if (mode === "hitline") return document.lineAt(position);
+            else if (mode === "hitchar") return hitchar;
+            else if (mode === "range") return range;
+            else return null;
+        } else {
+            console.log(returnValue);
+            return returnValue;
+        }
+    }).catch((error) => {
+        console.error(error);
+        return null;
+    });
 }
 
 function getCurrentWord(document, position) {
@@ -76,13 +108,17 @@ class JOSIM_HoverProvider {
 }
 class JOSIM_DefinitionProvider {
     provideDefinition(document, position, token) {
-        const currentWord = getCurrentWord(document, position)
-        const loc = findwhere(document, currentWord)
-        return Promise.resolve(loc);
+        findStructIdentifiers(document)
+        const currentWord = getCurrentWord(document, position);
+        return findwhere(document, currentWord).then((loc) => {
+            console.log(loc);
+            return loc;
+        });
     }
 }
+
 class JOSIM_DefinitionPeekProvider {
-    provided
+
 }
 class JOSIM_FoldingRangeProvider {
     provideFoldingRange(document, context, token) {
