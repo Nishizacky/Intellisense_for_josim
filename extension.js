@@ -2,14 +2,6 @@ const vscode = require('vscode');
 var textCounter = 0
 const JOSIM_MODE = { scheme: 'file', language: 'josim' };
 const subcktPattern = /^\.subckt\s+(\w+)/m;
-function findStructIdentifiers(document) {
-  const text = document.getText();
-  const matches = text.matchAll(subcktPattern);
-  for (const match of matches) {
-    const identifier = match[1];
-    structIdentifiers.push(identifier);
-  }
-}
 function findwhere(document, currentWord, mode = "loc") {
     if (currentWord == ".subckt") {
         return Promise.resolve('This is the definition.');
@@ -48,7 +40,7 @@ function findwhere(document, currentWord, mode = "loc") {
 
         if (refFileName.length === 0) {
             const text = document.getText();
-            const searchStr = new RegExp("^\\.subckt +" + currentWord, "m");
+            const searchStr = new RegExp("^\\.subckt\\s+" + currentWord, "m");
             const startIndex = text.search(searchStr);
             const position = document.positionAt(startIndex);
             const trueUri = vscode.Uri.file(document.fileName);
@@ -75,6 +67,7 @@ function findwhere(document, currentWord, mode = "loc") {
         return null;
     });
 }
+
 
 function getCurrentWord(document, position) {
     const wordRange = document.getWordRangeAtPosition(position, /[\.a-zA-Z0-9_]+/);
@@ -108,7 +101,6 @@ class JOSIM_HoverProvider {
 }
 class JOSIM_DefinitionProvider {
     provideDefinition(document, position, token) {
-        findStructIdentifiers(document)
         const currentWord = getCurrentWord(document, position);
         return findwhere(document, currentWord).then((loc) => {
             console.log(loc);
@@ -117,9 +109,7 @@ class JOSIM_DefinitionProvider {
     }
 }
 
-class JOSIM_DefinitionPeekProvider {
 
-}
 class JOSIM_FoldingRangeProvider {
     provideFoldingRange(document, context, token) {
         console.log("foldrange on")
