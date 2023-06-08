@@ -1,14 +1,12 @@
 const vscode = require('vscode');
-var textCounter = 0
+var foundflag = 0
 const JOSIM_MODE = { scheme: 'file', language: 'josim' };
 function findwhere(document, currentWord, mode = "loc") {
     if (currentWord == ".subckt") {
         return Promise.resolve('This is the definition.')
     }
-    console.log(currentWord)
-    console.log(document)
-    var text =  document.getText()
-    var nonl_text =  text.replace(/[\s\n]/mg, "o")
+    var text = document.getText()
+    var nonl_text = text.replace(/[\s\n]/mg, "o")
     var searchStr = new RegExp(/\.include\s+(\S+)/, "g")
     var incFileName = text.match(searchStr)
     var refFileName = []
@@ -17,31 +15,37 @@ function findwhere(document, currentWord, mode = "loc") {
         tmp = incFileName[list].match(/\.include\s+(\S+)/m)
         refFileName[list] = tmp[1]
     }
-    for (list in refFileName) {
-        const uri = vscode.Uri.file(refFileName[list])
-        var  refDoc = vscode.workspace.openTextDocument(vscode.Uri.file(refFileName[list]))
-        findwhere(refDoc, currentWord, mode)
+    var returnValue
+    if (refFileName.length > 0) {
+        for (list in refFileName) {
+            const uri = vscode.Uri.file(refFileName[list])
+            var refDoc = vscode.workspace.openTextDocument(uri)
+            refDoc.then((refDoc)=>findwhere(refDoc,currentWord,mode))
+            console.log("findwhere end")
+        }
+    } else {
+        var hitchar = 0
+        searchStr = new RegExp("^\.subckt +" + currentWord, "m")
+        const startIndex = text.search(searchStr)
+        const position = document.positionAt(startIndex)
+        const trueUri = vscode.Uri.file(document.fileName);
+        const pos = position;
+        const sub_endIndex = nonl_text.indexOf("ends", startIndex);
+        const endIndex = nonl_text.indexOf("\s", sub_endIndex);
+        const endposition = document.positionAt(endIndex)
+        const loc = new vscode.Location(trueUri, pos)
+        const range = new vscode.Range(position, endposition)
+        console.log(startIndex)
+        if (startIndex == 0) {
+            return returnValue
+        }
+        foundflag = 1
+        if (mode == "loc") return loc;
+        else if (mode == "uri") return trueUri;
+        else if (mode == "hitline") return document.lineAt(position);
+        else if (mode == "hitchar") return hitchar.lineAt(position).indexOf(currentWord);
+        else if (mode == "range") return range;
     }
-    var hitchar = 0
-    searchStr = new RegExp("^\.subckt +" + currentWord, "m")
-    const startIndex = text.search(searchStr)
-    const position = document.positionAt(startIndex)
-    const trueUri = vscode.Uri.file(document.fileName);
-    const pos = position;
-    const sub_endIndex = nonl_text.indexOf("ends", startIndex);
-    const endIndex = nonl_text.indexOf("\s", sub_endIndex);
-    const endposition = document.positionAt(endIndex)
-    const loc = new vscode.Location(trueUri, pos)
-    console.log(loc)
-    const range = new vscode.Range(position, endposition)
-    if (mode == "loc") return loc;
-    else if (mode == "uri") return trueUri;
-    else if (mode == "hitline") return document.lineAt(position);
-    else if (mode == "hitchar") return hitchar.lineAt(position).indexOf(currentWord);
-    else if (mode == "range") {
-        return range
-
-    } else return
 }
 
 function getCurrentWord(document, position) {
@@ -77,8 +81,11 @@ class JOSIM_HoverProvider {
 class JOSIM_DefinitionProvider {
     provideDefinition(document, position, token) {
         const currentWord = getCurrentWord(document, position)
+        foundflag = 0
         const loc = findwhere(document, currentWord)
-        return Promise.resolve(loc);
+        return Promise.resolve(loc)
+
+
     }
 }
 class JOSIM_DefinitionPeekProvider {
