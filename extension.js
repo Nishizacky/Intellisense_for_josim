@@ -2,6 +2,12 @@ const vscode = require('vscode');
 var textCounter = 0
 const JOSIM_MODE = { scheme: 'file', language: 'josim' };
 const subcktPattern = /^\.subckt\s+(\w+)/m;
+function getCurrentWord(document, position) {
+    const wordRange = document.getWordRangeAtPosition(position, /[\.a-zA-Z0-9_]+/);
+    if (!wordRange) return Promise.reject('No word here.');
+    const currentWord = document.lineAt(position.line).text.slice(wordRange.start.character, wordRange.end.character);
+    return currentWord
+}
 function findwhere(document, currentWord, mode = "loc") {
     if (currentWord == ".subckt") {
         return Promise.resolve('This is the definition.');
@@ -68,42 +74,26 @@ function findwhere(document, currentWord, mode = "loc") {
     });
 }
 
-
-function getCurrentWord(document, position) {
-    const wordRange = document.getWordRangeAtPosition(position, /[\.a-zA-Z0-9_]+/);
-    if (!wordRange) return Promise.reject('No word here.');
-    const currentWord = document.lineAt(position.line).text.slice(wordRange.start.character, wordRange.end.character);
-    return currentWord
-}
 class JOSIM_HoverProvider {
     provideHover(document, position, token) {
-        const currentWord = getCurrentWord(document, position)
-        if (currentWord == ".subckt") {
-            return Promise.resolve('This is definition.')
-        }
-        var text = document.getText()
-        var nonl_text = text.replace(/[\s\n]/mg, "o")
-        const searchStr = new RegExp("^\.subckt +" + currentWord, "m")
-        const startIndex = text.search(searchStr)
-        const Point = document.positionAt(startIndex);
-        if (Point == vscode.Point(0, 0)) {
-            return
-        }
-        const sub_endIndex = nonl_text.indexOf("ends", startIndex);
-        var endIndex = nonl_text.indexOf("\s", sub_endIndex) + 1;
-        const endposition = document.positionAt(endIndex)
-        const range = new vscode.Range(Point, endposition)
-        var gotText = document.getText(range)
-        var hoverstring = new vscode.MarkdownString
-        hoverstring.appendCodeblock(gotText, "josim")
-        return Promise.resolve(new vscode.Hover(hoverstring));
+        const currentWord = getCurrentWord(document, position);
+        console.log(currentWord);
+        const rangePromise = findwhere(document, currentWord,"range");
+        return rangePromise.then((range) => {
+            console.log(range);
+            var gotText = document.getText(range);
+            console.log(gotText);
+            var hoverstring = new vscode.MarkdownString();
+            hoverstring.appendCodeblock(gotText, "josim");
+            return new vscode.Hover(hoverstring);
+        });
+        
     }
 }
 class JOSIM_DefinitionProvider {
     provideDefinition(document, position, token) {
         const currentWord = getCurrentWord(document, position);
         return findwhere(document, currentWord).then((loc) => {
-            console.log(loc);
             return loc;
         });
     }
@@ -158,5 +148,3 @@ function deactivate() {
 }
 
 module.exports = { activate, deactivate };
-
-
