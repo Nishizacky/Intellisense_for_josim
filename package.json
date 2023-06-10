@@ -39,6 +39,12 @@
         "scopeName": "source.jsm",
         "path": "./syntaxes/josim-snippets.json"
       }
-    ]
+    ],
+    "formatters": [
+      {
+        "id": "josimFormatter",
+        "label": "JOSIM Formatter",
+        "provider": "extension.js"
+      }]
   }
 }
