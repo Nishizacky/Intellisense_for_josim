@@ -95,8 +95,13 @@ class JOSIM_FormatProvider {
   provideDocumentFormattingEdits(document, options, token) {
     const edits = [];
     const text = document.getText();
+    var max_indent = 0;
+    var text_temp     
+    
+    for(){
 
-    // 数値の1の位の位置を揃える
+    }
+
     const formattedText = text.replace(
       /(\d+)\s*([a-zA-Z]+)/g,
       (match, numeric, unit) => {
@@ -116,6 +121,7 @@ class JOSIM_FormatProvider {
     }
 
     return edits;
+    return vscode.window.showInformationMessage("Formatter haven't been developed yet. Please wait until update.")
   }
 }
 
