@@ -45,6 +45,22 @@
         "id": "josimFormatter",
         "label": "JOSIM Formatter",
         "provider": "extension.js"
-      }]
-  }
+      }],
+    "viewsContainers": {
+        "activitybar": [
+            {
+                "id": "josim-view",
+                "title": "josim explorer",
+                "icon": "./josim.png"
+            }
+        ]
+    },
+    "views": {
+        "josim-view": [
+            {
+                "id": "josim",
+                "name": "josim"
+            }
+        ]
+  }}
 }
