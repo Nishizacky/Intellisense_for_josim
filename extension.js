@@ -1,7 +1,6 @@
 const vscode = require("vscode");
 var textCounter = 0;
 const JOSIM_MODE = { scheme: "file", language: "josim" };
-const subcktPattern = /^\.subckt\s+(\w+)/m;
 function getCurrentWord(document, position) {
   const wordRange = document.getWordRangeAtPosition(
     position,
@@ -91,75 +90,72 @@ class JOSIM_DefinitionProvider {
   }
 }
 
-class JOSIM_FormatProvider {
-  provideDocumentFormattingEdits(document, options, token) {
-    const edits = [];
-    const text = document.getText();
-    var max_indent = 0;
-    var text_temp     
+// class JOSIM_FormatProvider {
+//   provideDocumentFormattingEdits(document, options, token) {
+//     const edits = [];
+//     const text = document.getText();
+//     var max_indent = 0;
+//     var text_temp     
     
-    for(){
 
-    }
+//     const formattedText = text.replace(
+//       /(\d+)\s*([a-zA-Z]+)/g,
+//       (match, numeric, unit) => {
+//         const alignedNumeric = numeric.padStart(2, " ");
+//         return `${alignedNumeric} ${unit}`;
+//       }
+//     );
 
-    const formattedText = text.replace(
-      /(\d+)\s*([a-zA-Z]+)/g,
-      (match, numeric, unit) => {
-        const alignedNumeric = numeric.padStart(2, " ");
-        return `${alignedNumeric} ${unit}`;
-      }
-    );
+//     // 修正情報を作成して配列に追加
+//     if (formattedText !== text) {
+//       const range = new vscode.Range(
+//         document.positionAt(0),
+//         document.positionAt(text.length)
+//       );
+//       const edit = new vscode.TextEdit(range, formattedText);
+//       edits.push(edit);
+//     }
 
-    // 修正情報を作成して配列に追加
-    if (formattedText !== text) {
-      const range = new vscode.Range(
-        document.positionAt(0),
-        document.positionAt(text.length)
-      );
-      const edit = new vscode.TextEdit(range, formattedText);
-      edits.push(edit);
-    }
+//     return edits;
+//     return vscode.window.showInformationMessage("Formatter haven't been developed yet. Please wait until update.")
+//   }
+// }
 
-    return edits;
-    return vscode.window.showInformationMessage("Formatter haven't been developed yet. Please wait until update.")
-  }
-}
-
-class JOSIM_FoldingRangeProvider {
-  provideFoldingRange(document, context, token) {
-    console.log("foldrange on");
-    var text = document.getText();
-    const lines = text.toString().split("\n");
-    var line_counter = 0;
-    var hitline_counter = 0;
-    var hitline = [];
-    var endline = [];
-    const searchStr = ".subckt";
-    const endchar = ".ends";
-    for (var line in lines) {
-      if (lines[line].indexOf(searchStr) > -1) {
-        hitline[hitline_counter] = line + 1;
-      }
-      if (lines[line].indexOf(endchar) > -1) {
-        endline[hitline_counter] = line;
-        hitline_counter++;
-      }
-      line_counter++;
-    }
-    var range = [];
-    for (var i in hitline_counter) {
-      range[i] = vscode.Range(
-        vscode.Position(hitline[i], 0),
-        vscode.Position(endline[i]),
-        length(endchar)
-      );
-    }
-    console.log(range);
-    const uri = vscode.Uri.file(document.fileName);
-    // const foldRange = vscode.Range.range;
-    return Promise.providerre(range);
-  }
-}
+// class JOSIM_FoldingRangeProvider {
+//   provideFoldingRange(document, context, token) {
+//     console.log("foldrange on");
+//     var text = document.getText();
+//     const lines = text.toString().split("\n");
+//     var line_counter = 0;
+//     var hitline_counter = 0;
+//     var hitline = [];
+//     var endline = [];
+//     const searchStr = ".subckt";
+//     const endchar = ".ends";
+//     for (var line in lines) {
+//       if (lines[line].indexOf(searchStr) > -1) {
+//         hitline[hitline_counter] = line + 1;
+//       }
+//       if (lines[line].indexOf(endchar) > -1) {
+//         endline[hitline_counter] = line;
+//         hitline_counter++;
+//       }
+//       line_counter++;
+//     }
+//     var range = [];
+//     for (var i in hitline_counter) {
+//       range[i] = vscode.Range(
+//         vscode.Position(hitline[i], 0),
+//         vscode.Position(endline[i]),
+//         length(endchar)
+//       );
+//     }
+//     console.log(range);
+//     const uri = vscode.Uri.file(document.fileName);
+//     // const foldRange = vscode.Range.range;
+//     return Promise.providerre(range);
+//   }
+// }
 
 function activate(context) {
   context.subscriptions.push(
@@ -169,21 +165,9 @@ function activate(context) {
     )
   );
   context.subscriptions.push(
-    vscode.languages.registerFoldingRangeProvider(
-      JOSIM_MODE,
-      new JOSIM_FoldingRangeProvider()
-    )
-  );
-  context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(
       JOSIM_MODE,
       new JOSIM_DefinitionProvider()
-    )
-  );
-  context.subscriptions.push(
-    vscode.languages.registerDocumentFormattingEditProvider(
-      JOSIM_MODE,
-      new JOSIM_FormatProvider()
     )
   );
 }

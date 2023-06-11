@@ -1,9 +1,19 @@
 # Change Log
 
-All notable changes to the "josim" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
 ## [Unreleased]
+### New
+- Tree provider
+- Formatter
+- Folding range provider
+### Fixes
+### Removals
+### Other
 
-- Initial release
+## [0.1.0] - 2023 - 06 -11
+### New
+- Basic Syntax hilights
+- Basic definition provider
+- Basic hover provider
+### Fixed
+### Removals
+### Other
