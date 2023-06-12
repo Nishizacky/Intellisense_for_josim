@@ -92,7 +92,7 @@
 					}
 				},
 				{
-					"begin": "(\\.model)\\s+(\\w+)\\s+(\\w+)",
+					"begin": "^(\\.model)\\s+([\\S]+)\\s+(\\w+)",
 					"end": "\\n",
 					"beginCaptures": {
 						"1": {
@@ -101,14 +101,23 @@
 						"2": {
 							"name": "variable.name.josim"
 						},
-						"3":{
-							"name":"string.quoted.other"
+						"3": {
+							"name": "support.function"
 						}
-					}
-				},
-				{
-					"match": "\\k'variable.name.josim'",
-					"name":"variable"
+					},
+					"patterns": [
+						{
+							"match": "\\s*(\\S+)\\s*=\\s*([\\S|^,]+)",
+							"captures": {
+								"1": {
+									"name": "variable.name.josim"
+								},
+								"2": {
+									"name": "constant.numeric"
+								}
+							}
+						}
+					]
 				},
 				{
 					"begin": "(\\.param)",
@@ -230,22 +239,56 @@
 		"components": {
 			"patterns": [
 				{
-					"begin": "(X\\S+)\\s+(\\S+)(.+)",
+					"begin": "(X\\w+)",
 					"end": "\\n",
 					"beginCaptures": {
 						"1": {
 							"name": "variable.other.josim"
-						},
-						"2": {
-							"name": "entity.name.function.josim"
-						},
-						"3": {
-							"name": "constant.numeric.josim"
 						}
-					}
+					},
+					"patterns": [
+						{
+							"match": "\\b([0-9]+)\\b",
+							"name": "constant.numeric"
+						},
+						{
+							"match": "\\b(\\w+)\\b",
+							"name": "entity.name.function.josim"
+						}
+					]
 				},
 				{
-					"begin": "(V\\w+)",
+					"begin": "(B\\S+)",
+					"end": "\\n",
+					"beginCaptures": {
+						"1": {
+							"name": "constant.language"
+						}
+					},
+					"patterns": [
+						{
+							"match": "\\b([0-9]+)\\b",
+							"name": "constant.numeric"
+						},
+						{
+							"match": "\\b(\\S+)\\s*=\\s*(\\S+)",
+							"captures": {
+								"1": {
+									"name": "variable.name"
+								},
+								"2": {
+									"name": "constant.numeric"
+								}
+							}
+						},
+						{
+							"match": "\\b(\\S+)\\b",
+							"name": "entity.name.function"
+						}
+					]
+				},
+				{
+					"begin": "(V\\S+)",
 					"beginCaptures": {
 						"1": {
 							"name": "constant.language.josim"
@@ -258,8 +301,23 @@
 							"name": "constant.numeric.josim"
 						},
 						{
-							"match": "\\w+.+\\)",
-							"name": "string.quoted.other.josim"
+							"begin": "\\(",
+							"end": "\\)",
+							"name": "variable",
+							"patterns": [
+								{
+									"match": "\\s*([0-9][^)\\S]+)\\s*",
+									"name": "constant.numeric.josim"
+								},
+								{
+									"match": "\\s*[^0-9]\\w+\\s*",
+									"name": "variable.name.josim"
+								}
+							]
+						},
+						{
+							"match": "\\w+",
+							"name": "entity.name.function.josim"
 						}
 					]
 				},
@@ -293,21 +351,12 @@
 							"name": "string.quoted.other.josim"
 						},
 						{
-							"match": "",
-							"name": "string.quoted.other.josim",
-							"patterns": [
-								{
-									"match": "[0-9]+\\.?[0-9]+",
-									"name": "constant.numeric.josim"
-								}
-							]
-						},
-						{
 							"match": "\\*\\S+",
 							"name": "comment.josim"
-						},{
+						},
+						{
 							"match": "fcheck",
-							"name":"comment.josim"
+							"name": "comment.josim"
 						}
 					]
 				}

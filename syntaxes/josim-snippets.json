@@ -32,16 +32,16 @@
 	"magnetic_premeability": {
 		"prefix": "magnetic_premeability,mu0",
 		"body": "MU0",
-		"description": "μ0 = 12.566370614E-7 H/m",
+		"description": "μ0 = 12.566370614E-7 H/m"
 	},
 	"eps0": {
 		"prefix": "eps0",
 		"body": "EPS0",
-		"description": "8.854187817E-12",
+		"description": "8.854187817E-12"
 	},
 	"sigma": {
 		"prefix": "sigma",
 		"body": "SIGMA",
 		"description": "phi0/2pi"
-	},
+	}
 }

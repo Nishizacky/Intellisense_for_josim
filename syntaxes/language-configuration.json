@@ -10,7 +10,6 @@
         ["{", "}"],
         ["[", "]"],
         ["(", ")"],
-        [".subckt",".ends"]
     ],
     // symbols that are auto closed when typing
     "autoClosingPairs": [
