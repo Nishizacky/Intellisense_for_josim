@@ -1,15 +1,19 @@
 {
 	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"name": "josim.josim",
-	"patterns": [],
+	"patterns": [
+		{
+			"include": "#definition"
+		}
+	],
 	"repository": {
 		"definition": {
 			"patterns": [
 				{
 					"match": "\\.(subckt|model|param)\\s+(\\w)+",
 					"captures": {
-						"1":{
-							"name":"entity.name.class"
+						"1": {
+							"name": "entity.name.class"
 						},
 						"2": {
 							"name": "variable.name.josim"
@@ -18,7 +22,7 @@
 				},
 				{
 					"match": "\\b\\k<variable.name.josim>\\b",
-					"name":"variable.usage"
+					"name": "variable.usage"
 				}
 			]
 		}
