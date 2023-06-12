@@ -1,8 +1,8 @@
 # Intellisense for josim (VScode extension)
 ## Features
 
-- Definition Provid
-- Syntax highlight
+- Definition Provider
+- Syntax highlighter
 - Snipetts for constant in the list of [Syntax Guide](https://joeydelp.github.io/JoSIM/syntax/)
 - [unrelease] formatter
 - [unrelease] folding range provider
@@ -14,4 +14,5 @@
 ## Extension Settings
 ## Known Issues
 ## Release Notes
+- 2023 June 13th: ver. 0.1.1 released
 - 2023 June 11th: ver. 0.1.0 released
