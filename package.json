@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "type": "git",
     "url": "https://github.com/Nishizacky/Intellisense_for_josim"
@@ -54,6 +54,11 @@
     ],
     "viewsContainers": {
       "activitybar": [
+        {
+          "id": "Intellisense_for_josim",
+          "title": "JOSIM",
+          "icon": "./josim.png"
+        },
         {
           "id": "josim-view",
           "title": "josim explorer",

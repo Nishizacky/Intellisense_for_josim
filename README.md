@@ -14,5 +14,6 @@
 ## Extension Settings
 ## Known Issues
 ## Release Notes
+- 2023 June 14th: ver. 0.1.2 released
 - 2023 June 13th: ver. 0.1.1 released
 - 2023 June 11th: ver. 0.1.0 released
