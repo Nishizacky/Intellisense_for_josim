@@ -4,6 +4,7 @@
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
   "version": "0.1.2",
+  "icon": "./fileicons./id-icon-theme.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/Nishizacky/Intellisense_for_josim"
@@ -51,28 +52,6 @@
         "label": "JOSIM Formatter",
         "provider": "extension.js"
       }
-    ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "Intellisense_for_josim",
-          "title": "JOSIM",
-          "icon": "./josim.png"
-        },
-        {
-          "id": "josim-view",
-          "title": "josim explorer",
-          "icon": "./josim.png"
-        }
-      ]
-    },
-    "views": {
-      "josim-view": [
-        {
-          "id": "josim",
-          "name": "josim"
-        }
-      ]
-    }
+    ]
   }
 }
