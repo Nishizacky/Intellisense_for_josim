@@ -12,23 +12,33 @@ function getCurrentWord(document, position) {
     .text.slice(wordRange.start.character, wordRange.end.character);
   return currentWord;
 }
-async function superFinder(document, currentWord, mode) {
-  var uri = await docSelector(document);
-  if (uri != null) {
-    for (const docuri of uri) {
-      const refDoc = await vscode.workspace.openTextDocument(docuri);
+function openAndCheckFile(fileName,trueName) {
+  return vscode.workspace.openTextDocument(fileName)
+    .then((document) => {
+      // ファイルが開かれた場合の処理
+      console.log('ファイルが正常に開かれました。');
       var result = findwhere(refDoc, currentWord, mode);
       if (result != null) {
         return result;
       }
-    }
-  }
-  var result = findwhere(document, currentWord, mode);
+    })
+    .catch((error) => {
+      // ファイルが開けなかった場合の処理
+      console.error('ファイルを開けませんでした。エラー:', error);
+      const message = "Can not open file: "+trueName
+      vscode.window.showErrorMessage(message)
+    });
+}
+
+async function superFinder(document, currentWord, mode) {
+  var uri = await docSelector(document);
+  var result = await findwhere(document, currentWord, mode);
   if (result != null) {
     return result;
   }
-  return null
+  return null;
 }
+
 async function docSelector(document) {
   var text = document.getText();
   var searchStr = new RegExp(/\.include\s+(\S+)/, "g");
@@ -44,10 +54,12 @@ async function docSelector(document) {
   var docUri = [];
   for (const fileName of refFileName) {
     docUri.push(vscode.Uri.file(fileName));
+    openAndCheckFile(vscode.Uri.file(fileName),fileName)
   }
   return docUri;
 }
-function findwhere(document, currentWord, mode = "loc") {
+
+async function findwhere(document, currentWord, mode = "loc") {
   // var rejectStr = new RegExp(/^(L|R|B|C|[0-9])/, "g");
   // if (currentWord.match(rejectStr) != null) {
   //   return null;
@@ -60,7 +72,7 @@ function findwhere(document, currentWord, mode = "loc") {
   const searchStr = new RegExp("^\\.subckt\\s+" + currentWord, "m");
   const startIndex = text.search(searchStr);
   const searchStr_alt = new RegExp("^" + currentWord, "m");
-  const startIndex_alt = text.search(searchStr_alt)
+  const startIndex_alt = text.search(searchStr_alt);
   if (startIndex > -1) {
     const pos = document.positionAt(startIndex);
     var nonl_text = text.replace(/[\s\n]/gm, "o");
@@ -78,8 +90,8 @@ function findwhere(document, currentWord, mode = "loc") {
     } else console.log("mode isn't defined");
   } else if (startIndex_alt > -1) {
     const pos = document.positionAt(startIndex_alt);
-    const scriptRange = document.lineAt(pos)
-    console.log(scriptRange.text)
+    const scriptRange = document.lineAt(pos);
+    console.log(scriptRange.text);
     loc = new vscode.Location(document.uri, pos); // locの値を設定
     const hitchar = document.lineAt(pos).text.indexOf(currentWord);
     if (mode === "loc") return loc;
@@ -88,9 +100,10 @@ function findwhere(document, currentWord, mode = "loc") {
     else if (mode === "range") {
       return scriptRange.text;
     } else console.log("mode isn't defined");
-  } else console.log("search failed")
+  } else console.log("search failed");
   return null;
 }
+
 
 class JOSIM_HoverProvider {
   async provideHover(document, position, token) {
@@ -176,12 +189,12 @@ class JOSIM_DefinitionProvider {
 // }
 
 function activate(context) {
-  context.subscriptions.push(
-    vscode.languages.registerHoverProvider(
-      JOSIM_MODE,
-      new JOSIM_HoverProvider()
-    )
-  );
+  // context.subscriptions.push(
+  //   vscode.languages.registerHoverProvider(
+  //     JOSIM_MODE,
+  //     new JOSIM_HoverProvider()
+  //   )
+  // );
   context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(
       JOSIM_MODE,
