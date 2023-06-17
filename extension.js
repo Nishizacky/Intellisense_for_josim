@@ -189,12 +189,12 @@ class JOSIM_DefinitionProvider {
 // }
 
 function activate(context) {
-  // context.subscriptions.push(
-  //   vscode.languages.registerHoverProvider(
-  //     JOSIM_MODE,
-  //     new JOSIM_HoverProvider()
-  //   )
-  // );
+  context.subscriptions.push(
+    vscode.languages.registerHoverProvider(
+      JOSIM_MODE,
+      new JOSIM_HoverProvider()
+    )
+  );
   context.subscriptions.push(
     vscode.languages.registerDefinitionProvider(
       JOSIM_MODE,
