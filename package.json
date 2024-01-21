@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "icon": "./fileicons./id-icon-theme.png",
   "repository": {
     "type": "git",
@@ -12,12 +12,28 @@
   "engines": {
     "vscode": "^1.78.0"
   },
-  "main": "./extension.js",
-  "activationEvents": [],
+  "main": "./src/extension.js",
+  "activationEvents": [
+  ],
   "categories": [
     "Programming Languages"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "extension.playButton",
+        "title": "Execute Simulation"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "extension.playButton",
+          "group": "navigation",
+          "when": "resourceLangId == josim"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "josim",
@@ -53,5 +69,8 @@
         "provider": "extension.js"
       }
     ]
+  },
+  "dependencies": {
+    "csv": "^6.3.6"
   }
 }
