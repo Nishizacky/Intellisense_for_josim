@@ -1,5 +1,18 @@
 # Change Log
 
+## [0.2.1]
+
+### New
+
+### Fixes
+
+- Plot layout improved
+- CSV file problems fixed
+
+### Removals
+
+### Other
+
 ## [0.2.0]
 
 ### New
