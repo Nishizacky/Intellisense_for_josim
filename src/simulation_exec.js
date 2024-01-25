@@ -8,13 +8,14 @@ exports.showSimulationResult = async function (fspath) {
     ShowPlotDraw(htmlScript)
 }
 async function simulation_exec(fspath) {
-    let filePath = getCurrentWorkspaceFolder()
+    const re = /\/[^\/]+$/
+    let filePath = String(fspath).replace(re,"");
     if (filePath.includes(' ')) {
         vscode.window.showInformationMessage("filename should not contain ' '.");
     }
     filePath = filePath + "/josim_resultCSV"
     fs.mkdir(filePath, (err) => {
-        if (err) { throw err }
+        if (err) { throw "err: "+err }
     })
     const date = new Date();
     const outputFilePath = filePath + '/jsm_out' + date.getTime() + '.csv';
@@ -58,6 +59,7 @@ function ShowPlotDraw(htmlScript) {
     panel.webview.html = `<!DOCTYPE html>
     <html>
         <head>
+            <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
             <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         </head>
         <div id="out"></div>
@@ -98,14 +100,46 @@ async function csv2html(csvFilePath) {
     const reI = /^I/;
     const reV = /^V/;
     const phaseTitle = "Phase [rad]"
-    const currentTitle = "Current [A]"
-    const voltageTitle = "Voltage [V]"
+    const currentTitle = "Current [μA]"
+    const voltageTitle = "Voltage [μV]"
+    const xaxis = {
+        title: "Time [ns]",
+        showexponent: 'all',
+        exponentformat: 'e'
+    }
+    const font = {
+        family: "Times New Roman"
+    }
+    let layout = (unit) => {
+        return {
+            xaxis: xaxis,
+            yaxis: {
+                title: unit,
+            },
+            font: font
+        }
+    }
+    let phaseData = []
+    let currentData = []
+    let voltageData = []
+    let unit
+    let phaseLayout = {
+        xaxis: xaxis,
+        yaxis: {
+            title: phaseTitle,
+            tickvals: [],
+            ticktext: [],
+            tickmode: "array",
+            tickangle: "auto"
+        },
+        font: font
+    }
     let resolve = await getCsvResultFromSimulation(csvFilePath);
     name = resolve[0];
     resolve.shift();
     name.shift();
     const transposed = transpose(resolve);
-    time = transposed[0]
+    time = transposed[0].map(val => val * 1e9)
     value = transposed
     value.shift();
     for (i = 0; i < name.length; i++) {
@@ -119,7 +153,6 @@ async function csv2html(csvFilePath) {
             vFlag = 1
         }
     }
-    let unitQuantity = pFlag + iFlag + vFlag
     for (i = 0; i < name.length; i++) {
         trace = {
             x: time,
@@ -129,90 +162,84 @@ async function csv2html(csvFilePath) {
         };
         data.push(trace)
     }
-    if (unitQuantity < 2) {
-        let unit;
-        if (pFlag) {
-            unit = phaseTitle
-        } else if (iFlag) {
-            unit = currentTitle
-        } else if (vFlag) {
-            unit = voltageTitle
+
+
+    for (i = 0; i < name.length; i++) {
+        if (reP.test(name[i])) {
+            data[i].y = data[i].y.map((val) => {
+                return val / Math.PI
+            })
+            phaseData.push(data[i])
+        } else if (reI.test(name[i])) {
+            data[i].y = data[i].y.map((val) => {
+                return val * 1e6
+            })
+            currentData.push(data[i])
+        } else if (reV.test(name[i])) {
+            data[i].y = data[i].y.map((val) => {
+                return val * 1e6
+            })
+            voltageData.push(data[i])
         }
-        let layout = {
-            xaxis: {
-                title: "Time [s]"
-            },
-            yaxis: {
-                title: unit,
-            }
+    }
+    let phaseMaxes = []
+    let phaseMins = []
+    const aryMax = function (a, b) { return Math.max(a, b) }
+    const aryMin = function (a, b) { return Math.min(a, b) }
+    for (i = 0; i < Object.keys(phaseData).length; i++) {
+        phaseMaxes.push(phaseData[i].y.reduce(aryMax))
+        phaseMins.push(phaseData[i].y.reduce(aryMin))
+    }
+    const phaseMax = Math.trunc(phaseMaxes.reduce(aryMax))
+    const phaseMin = Math.trunc(phaseMins.reduce(aryMin))
+    for (i = phaseMin; i <= phaseMax; i++) {
+        phaseLayout.yaxis.tickvals.push(i)
+        let txt
+        if (i == -1) {
+            txt = `$-\\pi$`
+        } else if (i == 0) {
+            txt = `$0$`
         }
-        htmlScript = `
-            Plotly.newPlot(
-                "out",
-                ${JSON.stringify(data)},
-                ${JSON.stringify(layout)},
-                {"responsive":true}
-            )
-        `;
-        return htmlScript
-    } else {
-        let phaseData = []
-        let currentData = []
-        let voltageData = []
-        let unit
-        let layout = (unit) => {
-            return {
-                xaxis: {
-                    title: "Time [s]"
-                },
-                yaxis: {
-                    title: unit,
-                }
-            }
+        else if (i == 1) {
+            txt = `$\\pi$`
+        } else {
+            txt = `$${String(i)}\\pi$`
         }
-        for (i = 0; i < name.length; i++) {
-            if (reP.test(name[i])) {
-                phaseData.push(data[i])
-            } else if (reI.test(name[i])) {
-                currentData.push(data[i])
-            } else if (reV.test(name[i])) {
-                voltageData.push(data[i])
-            }
-        }
-        unit = "Phase [rad]"
-        let phaseDataScript = `
+        phaseLayout.yaxis.ticktext.push(txt)
+    }
+    let phaseDataScript = `
         Plotly.newPlot(
             "out0",
             ${JSON.stringify(phaseData)},
-            ${JSON.stringify(layout(unit))},
+            ${JSON.stringify(phaseLayout)},
             {"responsive":true}
         )`;
-        unit = currentTitle
-        let currentDataScript = `
+    unit = currentTitle
+    let currentDataScript = `
         Plotly.newPlot(
             "out1",
             ${JSON.stringify(currentData)},
             ${JSON.stringify(layout(unit))},
             {"responsive":true}
         )`;
-        unit = voltageTitle
-        let vonltageDataScript = `
+    unit = voltageTitle
+    let vonltageDataScript = `
         Plotly.newPlot(
             "out2",
             ${JSON.stringify(voltageData)},
             ${JSON.stringify(layout(unit))},
             {"responsive":true}
         )`;
-        if (pFlag) {
-            htmlScript += phaseDataScript
-        }
-        if (iFlag) {
-            htmlScript += currentDataScript
-        }
-        if (vFlag) {
-            htmlScript += vonltageDataScript
-        }
-        return htmlScript
+    if (pFlag) {
+        htmlScript += phaseDataScript
     }
+    if (iFlag) {
+        htmlScript += currentDataScript
+    }
+    if (vFlag) {
+        htmlScript += vonltageDataScript
+    }
+    return htmlScript
+
 
 }
