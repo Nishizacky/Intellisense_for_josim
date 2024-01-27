@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "icon": "fileicons/id-icon-theme.png",
   "repository": {
     "type": "git",
@@ -13,8 +13,7 @@
     "vscode": "^1.78.0"
   },
   "main": "./src/extension.js",
-  "activationEvents": [
-  ],
+  "activationEvents": [],
   "categories": [
     "Programming Languages"
   ],

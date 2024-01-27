@@ -1,5 +1,17 @@
 # Change Log
 
+## [0.2.2]
+
+### New
+
+### Fixes
+
+- A bug with simulation (child_proccess) fixed
+
+### Removals
+
+### Other
+
 ## [0.2.1]
 
 ### New

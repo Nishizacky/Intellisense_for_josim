@@ -15,8 +15,13 @@
 
 ## Extension Settings
 ## Known Issues
+
+- you can't download a img file because of a html feature
+    - I'm finding a solution to download img files
+
 ## Release Notes
 
+- 2024 January 27th: ver 0.2.2 released
 - 2024 January 25th: ver 0.2.1 released
 - 2024 January 21th: ver. 0.2.0 released
 - 2023 June 14th: ver. 0.1.2 released
