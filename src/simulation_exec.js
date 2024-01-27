@@ -9,19 +9,19 @@ exports.showSimulationResult = async function (fspath) {
 }
 async function simulation_exec(fspath) {
     const re = /\/[^\/]+$/
-    let filePath = String(fspath).replace(re,"");
+    let filePath = String(fspath).replace(re, "");
     if (filePath.includes(' ')) {
         vscode.window.showInformationMessage("filename should not contain ' '.");
     }
     filePath = filePath + "/josim_resultCSV"
     fs.mkdir(filePath, (err) => {
-        if (err) { throw "err: "+err }
+        if (err) { throw "err: " + err }
     })
     const date = new Date();
     const outputFilePath = filePath + '/jsm_out' + date.getTime() + '.csv';
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath+' -m'
     return new Promise((resolve, reject) => {
-        exec(string_for_exec, { maxBuffer: 1024 * 1024 }, (err, stdout, stderr) => {
+        exec(string_for_exec, (err, stdout, stderr) => {
             if (err) {
                 reject(vscode.window.showErrorMessage("josim-cli\n" + stderr));
             }
