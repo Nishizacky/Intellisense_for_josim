@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "icon": "fileicons/id-icon-theme.png",
   "repository": {
     "type": "git",
@@ -18,6 +18,26 @@
     "Programming Languages"
   ],
   "contributes": {
+    "configuration": {
+      "title": "IfJplotSaveImege",
+      "properties": {
+        "saveImage.Format": {
+          "type": "string",
+          "default": "png",
+          "description": "Specify a image format you save, 'png','jpg' or 'jpeg','webp','svg','pdf', and 'eps'"
+        },
+        "saveImage.Width": {
+          "type": "number",
+          "default": 860,
+          "description": "Image width you save"
+        },
+        "saveImage.Height":{
+          "type":"number",
+          "default":540,
+          "description": "Image height you save"
+        }
+      }
+    },
     "commands": [
       {
         "command": "extension.playButton",

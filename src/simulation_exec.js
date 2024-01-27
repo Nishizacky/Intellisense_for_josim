@@ -2,10 +2,15 @@ const { exec } = require('child_process')
 const vscode = require("vscode")
 const fs = require('fs')
 const csv = require('csv')
+let vsConfig = vscode.workspace.getConfiguration('saveImage');
+let toImageFormat = vsConfig.get('Format');
+let downloadImageWidth = vsConfig.get('Width');
+let downloadImageHeight=vsConfig.get('Height')
+
 exports.showSimulationResult = async function (fspath) {
     let resultFilePath = await simulation_exec(fspath);
-    let htmlScript = await csv2html(resultFilePath);
-    ShowPlotDraw(htmlScript)
+    let showdata = await csv2html(resultFilePath);
+    ShowPlotDraw(showdata)
 }
 async function simulation_exec(fspath) {
     const re = /\/[^\/]+$/
@@ -19,7 +24,7 @@ async function simulation_exec(fspath) {
     })
     const date = new Date();
     const outputFilePath = filePath + '/jsm_out' + date.getTime() + '.csv';
-    const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath+' -m'
+    const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
         exec(string_for_exec, (err, stdout, stderr) => {
             if (err) {
@@ -30,7 +35,7 @@ async function simulation_exec(fspath) {
     })
 }
 
-function ShowPlotDraw(htmlScript) {
+function ShowPlotDraw(showdata) {
     //返り値はhtmlの文章に使う
     let panel = vscode.window.createWebviewPanel(
         "plotData",
@@ -45,18 +50,26 @@ function ShowPlotDraw(htmlScript) {
             title: "Time [s]"
         }
     }
+    const saveImageConfig=`{format: '${toImageFormat}' , width: ${downloadImageWidth}, height: ${downloadImageHeight}}`
     panel.webview.html = `<!DOCTYPE html>
     <html>
         <head>
             <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
             <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         </head>
-        <div id="out"></div>
-        <div id="out0"></div>
-        <div id="out1"></div>
-        <div id="out2"></div>
+        ${showdata.div}
         <script>
-            ${htmlScript}
+            ${showdata.script}
+            function saveAsImage(id) {
+                var plotlyGraph = document.getElementById(id);
+                Plotly.toImage(plotlyGraph,${saveImageConfig})
+                    .then(function (url) {
+                        var a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'plot.${toImageFormat}';
+                        a.click();
+                    });
+            }
         </script>
     </html>
   `;
@@ -123,6 +136,11 @@ async function csv2html(csvFilePath) {
         },
         font: font
     }
+
+    const config = {
+        "responsive": true,
+        'modeBarButtonsToRemove': ['toImage']
+    }
     let resolve = await getCsvResultFromSimulation(csvFilePath);
     name = resolve[0];
     resolve.shift();
@@ -173,62 +191,79 @@ async function csv2html(csvFilePath) {
     }
     let phaseMaxes = []
     let phaseMins = []
-    const aryMax = function (a, b) { return Math.max(a, b) }
-    const aryMin = function (a, b) { return Math.min(a, b) }
-    for (i = 0; i < Object.keys(phaseData).length; i++) {
-        phaseMaxes.push(phaseData[i].y.reduce(aryMax))
-        phaseMins.push(phaseData[i].y.reduce(aryMin))
-    }
-    const phaseMax = Math.trunc(phaseMaxes.reduce(aryMax))
-    const phaseMin = Math.trunc(phaseMins.reduce(aryMin))
-    for (i = phaseMin; i <= phaseMax; i++) {
-        phaseLayout.yaxis.tickvals.push(i)
-        let txt
-        if (i == -1) {
-            txt = `$-\\pi$`
-        } else if (i == 0) {
-            txt = `$0$`
+    if (pFlag == 1) {
+        const aryMax = function (a, b) { return Math.max(a, b) }
+        const aryMin = function (a, b) { return Math.min(a, b) }
+        for (i = 0; i < Object.keys(phaseData).length; i++) {
+            phaseMaxes.push(phaseData[i].y.reduce(aryMax))
+            phaseMins.push(phaseData[i].y.reduce(aryMin))
         }
-        else if (i == 1) {
-            txt = `$\\pi$`
-        } else {
-            txt = `$${String(i)}\\pi$`
+        const phaseMax = Math.trunc(phaseMaxes.reduce(aryMax))
+        const phaseMin = Math.trunc(phaseMins.reduce(aryMin))
+        for (i = phaseMin; i <= phaseMax; i++) {
+            phaseLayout.yaxis.tickvals.push(i)
+            let txt
+            if (i == -1) {
+                txt = `$-\\pi$`
+            } else if (i == 0) {
+                txt = `$0$`
+            }
+            else if (i == 1) {
+                txt = `$\\pi$`
+            } else {
+                txt = `$${String(i)}\\pi$`
+            }
+            phaseLayout.yaxis.ticktext.push(txt)
         }
-        phaseLayout.yaxis.ticktext.push(txt)
-    }
-    let phaseDataScript = `
+        let phaseDataScript = `
         Plotly.newPlot(
-            "out0",
+            "phasePlot",
             ${JSON.stringify(phaseData)},
             ${JSON.stringify(phaseLayout)},
-            {"responsive":true}
-        )`;
+            ${JSON.stringify(config)}
+        )
+        `;
+    }
     unit = currentTitle
     let currentDataScript = `
         Plotly.newPlot(
-            "out1",
+            "currentPlot",
             ${JSON.stringify(currentData)},
             ${JSON.stringify(layout(unit))},
-            {"responsive":true}
-        )`;
+            ${JSON.stringify(config)}
+        )
+        `;
     unit = voltageTitle
     let vonltageDataScript = `
         Plotly.newPlot(
-            "out2",
+            "voltagePlot",
             ${JSON.stringify(voltageData)},
             ${JSON.stringify(layout(unit))},
-            {"responsive":true}
-        )`;
-    if (pFlag) {
+            ${JSON.stringify(config)}
+        )
+        `;
+    let divScript=""
+    if (pFlag>0) {
         htmlScript += phaseDataScript
+        divScript+=`<div id="phasePlot"></div>
+        <button onclick="saveAsImage('phasePlot')">↑Save as ${toImageFormat}</button>
+        `
     }
-    if (iFlag) {
+    if (iFlag>0) {
         htmlScript += currentDataScript
+        divScript+=` <div id="currentPlot"></div>
+        <button onclick="saveAsImage('currentPlot')">↑Save as ${toImageFormat}</button>
+        `
     }
-    if (vFlag) {
+    if (vFlag>0) {
         htmlScript += vonltageDataScript
+        divScript+=`<div id="voltagePlot"></div>
+        <button onclick="saveAsImage('voltagePlot')">↑Save as ${toImageFormat}</button>
+        `
     }
-    return htmlScript
-
-
+    const showdata={
+        script:htmlScript,
+        div:divScript
+    }
+    return showdata
 }
