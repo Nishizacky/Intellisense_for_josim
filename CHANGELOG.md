@@ -1,4 +1,15 @@
 # Change Log
+## [0.2.3]
+
+### New
+
+### Fixes
+
+- quick fix
+
+### Removals
+
+### Other
 
 ## [0.2.2]
 

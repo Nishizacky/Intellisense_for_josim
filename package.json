@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "icon": "fileicons/id-icon-theme.png",
   "repository": {
     "type": "git",
