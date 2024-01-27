@@ -1,15 +1,19 @@
 # Change Log
-## [0.2.3]
+## [0.2.4]
 
 ### New
 
+- Configuration about plot image added, you can specify image format, width and height you save
+
 ### Fixes
 
-- quick fix
+- Issue with plot image saving fixed 
 
-### Removals
+## [0.2.3]
 
-### Other
+### Fixes
+
+- Quick fix
 
 ## [0.2.2]
 
