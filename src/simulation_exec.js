@@ -30,17 +30,6 @@ async function simulation_exec(fspath) {
     })
 }
 
-function getCurrentWorkspaceFolder() {
-    const activeEditor = vscode.window.activeTextEditor
-    if (activeEditor) {
-        let activeFileUri = activeEditor.document.uri
-        let workspaceFolder = vscode.workspace.getWorkspaceFolder(activeFileUri);
-        if (workspaceFolder) {
-            return workspaceFolder.uri.fsPath
-        }
-    }
-}
-
 function ShowPlotDraw(htmlScript) {
     //返り値はhtmlの文章に使う
     let panel = vscode.window.createWebviewPanel(
