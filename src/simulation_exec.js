@@ -7,10 +7,26 @@ let toImageFormat = vsConfig.get('Format');
 let downloadImageWidth = vsConfig.get('Width');
 let downloadImageHeight = vsConfig.get('Height')
 
+
 exports.showSimulationResult = async function (fspath) {
-    let resultFilePath = await simulation_exec(fspath);
-    let result_html = await csv2html(resultFilePath);
-    ShowPlotDraw(result_html)
+    return vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: "",
+        cancellable: true
+    }, async (progress, token) => {
+        token.onCancellationRequested(() => {
+            console.log("User canceled the long running operation");
+        });
+        progress.report({ increment: 0 });
+        progress.report({ increment: 10, message: "Simulation progressing" });
+        let resultFilePath = await simulation_exec(fspath);
+        progress.report({ increment: 70, message: "Exporting output file" });
+        let result_html = await csv2html(resultFilePath);
+        progress.report({ increment: 80, message: "Loading HTML" });
+        ShowPlotDraw(result_html)
+    });
+
+
 }
 async function simulation_exec(fspath) {
     const re = /\/[^\/]+$/
@@ -23,12 +39,14 @@ async function simulation_exec(fspath) {
         if (err) { throw "err: " + err }
     })
     const date = new Date();
-    const outputFilePath = filePath + '/jsm_out' + date.getTime() + '.csv';
+    const timestump = String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds()) +"_"+ String(date.getMonth()+1) + String(date.getDate()) +"_"+ String(date.getFullYear())
+    const outputFilePath = filePath + '/jsm_out' + "_" + timestump + '.csv';
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
         exec(string_for_exec, (err, stdout, stderr) => {
             if (err) {
-                reject(vscode.window.showErrorMessage("josim-cli\n" + stderr));
+
+                reject(vscode.window.showErrorMessage(stderr));
             }
             resolve(outputFilePath)
         })
@@ -266,6 +284,6 @@ async function csv2html(csvFilePath) {
     </html>
   `;
     const outputHtmlPath = csvFilePath.replace(".csv", ".html");
-    fs.writeFileSync(outputHtmlPath, result_html.replace("<!DOCTYPE html>\n",""));
+    fs.writeFileSync(outputHtmlPath, result_html.replace("<!DOCTYPE html>\n", ""));
     return result_html
 }

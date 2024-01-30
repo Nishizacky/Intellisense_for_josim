@@ -1,15 +1,25 @@
 # Change Log
 
+## [0.2.6]
+
+### New
+
+- progress window
+
 ## [0.2.5]
 
 ### New
 
-- html file has been saved automaticaly
+- html file saving
 
 ### Fixes
 
-- Issue with simulation fixed
-  
+- Issues with simulation 
+
+### Other
+
+- Output filename rules are changed
+
 ## [0.2.4]
 
 ### New
