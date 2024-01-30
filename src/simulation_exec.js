@@ -28,7 +28,7 @@ async function simulation_exec(fspath) {
     return new Promise((resolve, reject) => {
         exec(string_for_exec, (err, stdout, stderr) => {
             if (err) {
-                reject(vscode.window.showErrorMessage("josim-cli\n" + stderr));
+                reject(vscode.window.showErrorMessage(String(stderr)));
             }
             resolve(outputFilePath)
         })

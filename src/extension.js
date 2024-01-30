@@ -36,7 +36,7 @@ let disposable = vscode.commands.registerCommand('extension.playButton', () => {
   simulationExec.showSimulationResult(path)
 })
 
-function activate(context) {
+function activate(context) {	
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
       JOSIM_MODE,
