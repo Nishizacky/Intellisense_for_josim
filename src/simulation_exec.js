@@ -9,8 +9,8 @@ let downloadImageHeight = vsConfig.get('Height')
 
 exports.showSimulationResult = async function (fspath) {
     let resultFilePath = await simulation_exec(fspath);
-    let showdata = await csv2html(resultFilePath);
-    ShowPlotDraw(showdata)
+    let result_html = await csv2html(resultFilePath);
+    ShowPlotDraw(result_html)
 }
 async function simulation_exec(fspath) {
     const re = /\/[^\/]+$/
@@ -35,7 +35,7 @@ async function simulation_exec(fspath) {
     })
 }
 
-function ShowPlotDraw(showdata) {
+function ShowPlotDraw(result_html) {
     //返り値はhtmlの文章に使う
     let panel = vscode.window.createWebviewPanel(
         "plotData",
@@ -45,34 +45,8 @@ function ShowPlotDraw(showdata) {
             enableScripts: true,
         }
     );
-    let layout = {
-        xaxis: {
-            title: "Time [s]"
-        }
-    }
-    const saveImageConfig = `{format: '${toImageFormat}' , width: ${downloadImageWidth}, height: ${downloadImageHeight}}`
-    panel.webview.html = `<!DOCTYPE html>
-    <html>
-        <head>
-            <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
-            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-        </head>
-        ${showdata.div}
-        <script>
-            ${showdata.script}
-            function saveAsImage(id) {
-                var plotlyGraph = document.getElementById(id);
-                Plotly.toImage(plotlyGraph,${saveImageConfig})
-                    .then(function (url) {
-                        var a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'plot.${toImageFormat}';
-                        a.click();
-                    });
-            }
-        </script>
-    </html>
-  `;
+
+    panel.webview.html = result_html
 }
 
 function getCsvResultFromSimulation(csvFilePath) {
@@ -89,12 +63,12 @@ function getCsvResultFromSimulation(csvFilePath) {
 const transpose = a => a[0].map((_, c) => a.map(r => r[c]));
 
 async function csv2html(csvFilePath) {
-    let htmlScript;
-    let divScript;
+    let htmlScript = " ";
+    let divScript = " ";
     let unit;
-    let phaseDataScript="";
-    let currentDataScript="";
-    let vonltageDataScrip="";
+    let phaseDataScript = " ";
+    let currentDataScript = " ";
+    let vonltageDataScript = " ";
     let time = [];
     let value = [];
     let trace = [];
@@ -142,8 +116,8 @@ async function csv2html(csvFilePath) {
         },
         font: font
     }
-    
-    
+
+
     const config = {
         "responsive": true,
         'modeBarButtonsToRemove': ['toImage']
@@ -196,9 +170,8 @@ async function csv2html(csvFilePath) {
             voltageData.push(data[i])
         }
     }
-    
 
-    if (pFlag > 1) {
+    if (pFlag > 0) {
         const aryMax = function (a, b) { return Math.max(a, b) }
         const aryMin = function (a, b) { return Math.min(a, b) }
         for (i = 0; i < Object.keys(phaseData).length; i++) {
@@ -222,7 +195,7 @@ async function csv2html(csvFilePath) {
             }
             phaseLayout.yaxis.ticktext.push(txt)
         }
-        let phaseDataScript = `
+        phaseDataScript = `
         Plotly.newPlot(
             "phasePlot",
             ${JSON.stringify(phaseData)},
@@ -237,7 +210,7 @@ async function csv2html(csvFilePath) {
     }
     if (iFlag > 0) {
         unit = currentTitle
-        let currentDataScript = `
+        currentDataScript = `
         Plotly.newPlot(
             "currentPlot",
             ${JSON.stringify(currentData)},
@@ -252,7 +225,7 @@ async function csv2html(csvFilePath) {
     }
     if (vFlag > 0) {
         unit = voltageTitle
-        let vonltageDataScript = `
+        vonltageDataScript = `
         Plotly.newPlot(
             "voltagePlot",
             ${JSON.stringify(voltageData)},
@@ -269,5 +242,30 @@ async function csv2html(csvFilePath) {
         script: htmlScript,
         div: divScript
     }
-    return showdata
+    const saveImageConfig = `{format: '${toImageFormat}' , width: ${downloadImageWidth}, height: ${downloadImageHeight}}`
+    const result_html = `<!DOCTYPE html>
+    <html>
+        <head>
+            <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        </head>
+        ${showdata.div}
+        <script>
+            ${showdata.script}
+            function saveAsImage(id) {
+                var plotlyGraph = document.getElementById(id);
+                Plotly.toImage(plotlyGraph,${saveImageConfig})
+                    .then(function (url) {
+                        var a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'plot.${toImageFormat}';
+                        a.click();
+                    });
+            }
+        </script>
+    </html>
+  `;
+    const outputHtmlPath = csvFilePath.replace(".csv", ".html");
+    fs.writeFileSync(outputHtmlPath, result_html.replace("<!DOCTYPE html>\n",""));
+    return result_html
 }

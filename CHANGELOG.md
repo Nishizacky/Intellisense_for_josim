@@ -1,4 +1,15 @@
 # Change Log
+
+## [0.2.5]
+
+### New
+
+- html file has been saved automaticaly
+
+### Fixes
+
+- Issue with simulation fixed
+  
 ## [0.2.4]
 
 ### New

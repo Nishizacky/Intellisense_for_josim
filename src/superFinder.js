@@ -67,7 +67,6 @@ function findwhere(document, currentWord, mode = "loc") {
     } else if (startIndex_alt > -1) {
         const pos = document.positionAt(startIndex_alt);
         const scriptRange = document.lineAt(pos)
-        console.log(scriptRange.text)
         loc = new vscode.Location(document.uri, pos); // locの値を設定
         const hitchar = document.lineAt(pos).text.indexOf(currentWord);
         if (mode === "loc") return loc;
