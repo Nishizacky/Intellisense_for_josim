@@ -1,17 +1,38 @@
 # Change Log
+## [0.2.4]
 
-## [0.2.1]
+### New
+
+- Configuration about plot image added, you can specify image format, width and height you save
+
+### Fixes
+
+- Issue with plot image saving fixed 
+
+## [0.2.3]
+
+### Fixes
+
+- Quick fix
+
+## [0.2.2]
 
 ### New
 
 ### Fixes
 
-- Plot layout improved
-- CSV file problems fixed
+- A bug with simulation (child_proccess) fixed
 
 ### Removals
 
 ### Other
+
+## [0.2.1]
+
+### Fixes
+
+- Plot layout improved
+- CSV file problems fixed
 
 ## [0.2.0]
 
@@ -21,12 +42,6 @@
 
 - Simulation Exector
   - Added a button labeled "Execute Simulation" to the top-right menu bar. Clicking on this button will display the simulation results of the josim file in a new tab. To plot using the plotly library online, an internet connection is required. Please be aware that error message handling may be insufficient, and the functionality might not work even if no error messages are displayed.
-
-### Fixes
-
-### Removals
-
-### Other
 
 ## [0.1.2]
 

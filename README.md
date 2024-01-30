@@ -12,11 +12,15 @@
 ## Requirements
 
 - You have to replace file extension .inp into .jsm or .josim for this extension
+- You have to install [JoSIM](https://joeydelp.github.io/JoSIM/) to use 'Execute Simulation'
 
 ## Extension Settings
 ## Known Issues
 ## Release Notes
 
+- 2024 January 27th: ver 0.2.4 released
+- 2024 January 27th: ver 0.2.3 released
+- 2024 January 27th: ver 0.2.2 released
 - 2024 January 25th: ver 0.2.1 released
 - 2024 January 21th: ver. 0.2.0 released
 - 2023 June 14th: ver. 0.1.2 released
