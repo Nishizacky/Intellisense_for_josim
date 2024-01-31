@@ -77,9 +77,8 @@
 					}
 				},
 				{
-					"begin": "(\\.print)\\s+(\\S+)\\s+(\\S+)",
-					"end": "\\n",
-					"beginCaptures": {
+					"match": "(\\.print)\\s+(\\S+)\\s+(\\S+)\\s*(\\S*)\\n",
+					"captures": {
 						"1": {
 							"name": "storage.type.josim"
 						},
@@ -87,6 +86,9 @@
 							"name": "variable.josim"
 						},
 						"3": {
+							"name": "string.quoted.other.josim"
+						},
+						"4": {
 							"name": "string.quoted.other.josim"
 						}
 					}
