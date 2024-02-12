@@ -2,6 +2,7 @@ const vscode = require("vscode");
 const superFinder = require("./superFinder")
 const simulationExec = require("./simulation_exec")
 const JOSIM_MODE = { scheme: "file", language: "josim" };
+const jsmFormatter = require("./formatter")
 
 function getCurrentWord(document, position) {
   const wordRange = document.getWordRangeAtPosition(
@@ -30,13 +31,25 @@ class JOSIM_DefinitionProvider {
   }
 }
 
-let disposable = vscode.commands.registerCommand('extension.playButton', () => {
-  const activeEditor = vscode.window.activeTextEditor;
-  const path = activeEditor.document.uri.fsPath;
-  simulationExec.showSimulationResult(path)
-})
+let disposable = [];
 
-function activate(context) {	
+disposable.concat(
+  vscode.commands.registerCommand('extension.playButton', () => {
+    const activeEditor = vscode.window.activeTextEditor;
+    const path = activeEditor.document.uri.fsPath;
+    simulationExec.showSimulationResult(path)
+  }
+  )
+)
+disposable.concat(
+  vscode.languages.registerDocumentFormattingEditProvider('josim', {
+    provideDocumentFormattingEdits(document) {
+      jsmFormatter.jsmFormatter(document)
+    }
+  })
+)
+
+function activate(context) {
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
       JOSIM_MODE,
@@ -49,7 +62,8 @@ function activate(context) {
       new JOSIM_DefinitionProvider()
     )
   );
-  context.subscriptions.push(disposable);
+  for (let i = 0; i < disposable.length; i++) { context.subscriptions.push(disposable[i])}
+
 }
 
 function deactivate() {
