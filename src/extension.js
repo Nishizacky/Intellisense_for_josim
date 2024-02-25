@@ -34,10 +34,10 @@ class JOSIM_DefinitionProvider {
 let disposable = [];
 
 disposable.concat(
-  vscode.commands.registerCommand('extension.playButton', () => {
+  vscode.commands.registerCommand("josim-cli.executeSimulation", () => {
     const activeEditor = vscode.window.activeTextEditor;
-    const path = activeEditor.document.uri.fsPath;
-    simulationExec.showSimulationResult(path)
+    const uri = activeEditor.document.uri;
+    simulationExec.showSimulationResult(uri)
   }
   )
 )

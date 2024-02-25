@@ -1,5 +1,9 @@
 # Change Log
-
+## [0.2.7]
+### New
+- formatter
+### Other
+- this syntax hilights rule was changed
 ## [0.2.6]
 
 ### New

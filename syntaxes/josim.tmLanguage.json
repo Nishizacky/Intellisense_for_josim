@@ -313,6 +313,23 @@
 					]
 				},
 				{
+					"match": "^(K\\w+)\\s+(\\w+)\\s+(\\w)\\s+(\\w)",
+					"captures": {
+						"1":{
+							"name" :"variable.language"
+						},
+						"2":{
+							"name" :"variable.language"
+						},
+						"3":{
+							"name" :"variable.language"
+						},
+						"4":{
+							"name" :"constant.numeric"
+						}
+					}
+				},
+				{
 					"begin": "\\*.*",
 					"end": "\\n",
 					"name": "comment.josim"
