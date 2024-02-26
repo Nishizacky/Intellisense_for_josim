@@ -36,12 +36,18 @@
           "default": 540,
           "description": "Image height you save"
         },
-        "tmpFiles.saveCount":{
-          "type":"number",
-          "default":5,
+        "tmpFiles.saveCount": {
+          "type": "number",
+          "default": 5,
           "maximum": 100,
           "minimum": 1,
           "description": "Files in the 'josim_resultCSV' folder will be deleted in chronological order once the count exceeds this number"
+        },
+        "formatter.wordSpacing": {
+          "type": "number",
+          "default": "16",
+          "minimun": "1",
+          "description": "managing the spacing between words in a string when formatting"
         }
       }
     },
@@ -49,10 +55,10 @@
       {
         "command": "josim-cli.executeSimulation",
         "title": "Execute Simulation",
-        "icon":"$(debug-start)"
+        "icon": "$(debug-start)"
       }
     ],
-    "keybindings":[
+    "keybindings": [
       {
         "command": "josim-cli.executeSimulation",
         "key": "ctrl+enter"

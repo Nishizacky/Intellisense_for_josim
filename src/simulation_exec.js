@@ -3,6 +3,7 @@ const vscode = require("vscode")
 const fs = require('fs')
 const path = require("path")
 const csv = require('csv')
+const { exit } = require('process')
 const saveImage = vscode.workspace.getConfiguration('saveImage');
 const toImageFormat = saveImage.get('Format');
 const downloadImageWidth = saveImage.get('Width');
@@ -12,24 +13,30 @@ const saveCount = tmpFiles.get("saveCount")
 
 exports.showSimulationResult = async function (uri) {
     let fspath = uri.fsPath
-    let tmp = await getFileNamesInFolder(path.dirname(fspath)+"/josim_resultCSV")
-    autoDeleteTmpFiles(tmp)
-    return vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "",
-        cancellable: true
-    }, async (progress, token) => {
-        token.onCancellationRequested(() => {
-            console.log("User canceled the long running operation");
-        });
-        progress.report({ increment: 0 });
-        progress.report({ increment: 10, message: "Simulation progressing" });
-        let resultFilePath = await simulation_exec(fspath);
-        progress.report({ increment: 70, message: "Exporting output file" });
-        let result_html = await csv2html(resultFilePath);
-        progress.report({ increment: 80, message: "Loading HTML" });
-        ShowPlotDraw(result_html)
-    });
+    if (fspath.includes(" ")) {
+        let suggest = fspath.replaceAll(" ","_")
+        let message = "Josim file name should not have 'space', please change it.\nsuggested: "+suggest
+        vscode.window.showErrorMessage(message)
+    } else {
+        let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
+        autoDeleteTmpFiles(tmp)
+        return vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "",
+            cancellable: true
+        }, async (progress, token) => {
+            token.onCancellationRequested(() => {
+                console.log("User canceled the long running operation");
+            });
+            progress.report({ increment: 0 });
+            progress.report({ increment: 10, message: "Simulation progressing" });
+            let resultFilePath = await simulation_exec(fspath);
+            progress.report({ increment: 70, message: "Exporting output file" });
+            let result_html = await csv2html(resultFilePath);
+            progress.report({ increment: 80, message: "Loading HTML" });
+            ShowPlotDraw(result_html)
+        })
+    }
 
 
 }
@@ -44,7 +51,7 @@ async function simulation_exec(fspath) {
         if (err) { throw "err: " + err }
     })
     const date = new Date();
-    const timestump = String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds()) +"_"+ String(date.getMonth()+1) + String(date.getDate()) +"_"+ String(date.getFullYear())
+    const timestump = String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds()) + "_" + String(date.getMonth() + 1) + String(date.getDate()) + "_" + String(date.getFullYear())
     const outputFilePath = filePath + '/jsm_out' + "_" + timestump + '.csv';
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
@@ -300,16 +307,16 @@ async function getFileNamesInFolder(folderPath) {
         const files = await vscode.workspace.findFiles(
             new vscode.RelativePattern(folderPath, '*')
         );
-        
+
         for (const file of files) {
             const fileName = path.basename(file.fsPath);
             const stats = fs.statSync(file.fsPath);
             const createdTime = stats.birthtime.getTime();
             filesInfo.push({ fileName, filePath: file.fsPath, createdTime });
         }
-        let sortedFiles = filesInfo.sort((a,b)=> b.createdTime - a.createdTime)
+        let sortedFiles = filesInfo.sort((a, b) => b.createdTime - a.createdTime)
         let returnArray = []
-        sortedFiles.forEach(file=>{
+        sortedFiles.forEach(file => {
             returnArray.push(file.filePath)
         })
         return returnArray;
@@ -319,21 +326,21 @@ async function getFileNamesInFolder(folderPath) {
     }
 }
 
-async function autoDeleteTmpFiles(filenames){
+async function autoDeleteTmpFiles(filenames) {
     let basenameArray = []
     let noDuplicates = []
-    filenames.forEach(file=>{
-        basenameArray.push(file.replace(/\..+/,""))
+    filenames.forEach(file => {
+        basenameArray.push(file.replace(/\..+/, ""))
     })
     noDuplicates = Array.from(new Set(basenameArray))
-    
-    for(i=saveCount-1;i<noDuplicates.length;i++){
-        let regexSource = noDuplicates[i]+"\..+"
+
+    for (i = saveCount - 1; i < noDuplicates.length; i++) {
+        let regexSource = noDuplicates[i] + "\..+"
         let re = new RegExp(regexSource)
-        filenames.filter(function(value){return value.match(re)}).forEach(fname=>{
+        filenames.filter(function (value) { return value.match(re) }).forEach(fname => {
             fs.unlinkSync(fname)
         })
-        
+
     }
     console.log(noDuplicates);
 }

@@ -44,11 +44,10 @@ disposable.concat(
 disposable.concat(
   vscode.languages.registerDocumentFormattingEditProvider('josim', {
     provideDocumentFormattingEdits(document) {
-      jsmFormatter.jsmFormatter(document)
+      return jsmFormatter.jsmFormatter(document)
     }
   })
 )
-
 function activate(context) {
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
@@ -62,7 +61,7 @@ function activate(context) {
       new JOSIM_DefinitionProvider()
     )
   );
-  for (let i = 0; i < disposable.length; i++) { context.subscriptions.push(disposable[i])}
+  for (let i = 0; i < disposable.length; i++) { context.subscriptions.push(disposable[i]) }
 
 }
 
