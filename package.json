@@ -55,13 +55,15 @@
       {
         "command": "josim-cli.executeSimulation",
         "title": "Execute Simulation",
-        "icon": "$(debug-start)"
+        "icon": "$(debug-start)",
+        "when": "resourceLangId == josim"
       }
     ],
     "keybindings": [
       {
         "command": "josim-cli.executeSimulation",
-        "key": "ctrl+enter"
+        "key": "ctrl+enter",
+        "when": "resourceLangId == josim"
       }
     ],
     "menus": {

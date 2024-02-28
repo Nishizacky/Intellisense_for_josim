@@ -1,4 +1,7 @@
 # Change Log
+## [0.2.8]
+### Fixes
+- Some issues with comand keybind were fixed
 ## [0.2.7]
 ### New
 - formatter
