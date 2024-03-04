@@ -20,6 +20,7 @@ exports.showSimulationResult = async function (uri) {
     } else {
         let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
         autoDeleteTmpFiles(tmp)
+        //マージンを取る時もこれより下の部分を書き換えれば対応できる。
         return vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "",
@@ -32,7 +33,7 @@ exports.showSimulationResult = async function (uri) {
             progress.report({ increment: 10, message: "Simulation progressing" });
             let resultFilePath = await simulation_exec(fspath);
             progress.report({ increment: 70, message: "Exporting output file" });
-            let result_html = await csv2html(resultFilePath);
+            let result_html = await simulationResult2html(resultFilePath);
             progress.report({ increment: 80, message: "Loading HTML" });
             ShowPlotDraw(result_html)
         })
@@ -92,7 +93,7 @@ function getCsvResultFromSimulation(csvFilePath) {
 
 const transpose = a => a[0].map((_, c) => a.map(r => r[c]));
 
-async function csv2html(csvFilePath) {
+async function simulationResult2html(csvFilePath) {
     let htmlScript = " ";
     let divScript = " ";
     let unit;
