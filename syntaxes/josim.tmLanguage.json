@@ -15,13 +15,13 @@
 			"include": "#keywords"
 		},
 		{
-			"include": "#comments"
-		},
-		{
 			"include": "#strings"
 		},
 		{
 			"include": "#components"
+		},
+		{
+			"include": "#comments"
 		},
 		{
 			"include": "#EOF"
@@ -43,15 +43,7 @@
 			"patterns": [
 				{
 					"match": "#.*",
-					"name": "invalid.josim"
-				},
-				{
-					"match": "(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA) *(\\w+)",
-					"name": "invalid.josim"
-				},
-				{
-					"match": "(\\S+)+(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA)",
-					"name": "invalid.josim"
+					"name": "invalid.commentOut.josim"
 				},
 				{
 					"match": "\\b(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA)\\b",
@@ -63,6 +55,10 @@
 			"patterns": [
 				{
 					"include": "#subckt"
+				},
+				{
+					"match": "^\\.(?!(model|tran|subckt|ends|end|temp|neb|spread|iv|print|plot|file|save|param|control|endc|include)).*",
+					"name":"invalid.controle.josim"
 				},
 				{
 					"begin": "(\\.tran)\\s+(.+)",
@@ -77,19 +73,36 @@
 					}
 				},
 				{
-					"begin": "(\\.print)\\s+(\\S+)\\s+(\\S+)",
-					"end": "\\n",
-					"beginCaptures": {
+					"match": "(\\.print)\\s+(\\S+)\\s+(.+)",
+					"captures": {
 						"1": {
-							"name": "storage.type.josim"
+							"name": "keyword.control"
 						},
 						"2": {
-							"name": "variable.josim"
+							"name": "variable.paramaterType.josim"
 						},
 						"3": {
-							"name": "string.quoted.other.josim"
+							"name": "string.quoted.other.devNode.josim"
 						}
 					}
+				},
+				{
+					"begin":"^.print\\s",
+					"end":"\\n",
+					"name":"keyword.control",
+					"patterns": [
+						{
+							"match":"(\\w)\\((\\w+)\\)",
+							"captures": {
+								"1":{
+									"name": "variable.paramaterType.josim"
+								},
+								"2":{
+									"name": "string.quoted.other.devNode.josim"
+								}
+							}
+						}
+					]
 				},
 				{
 					"begin": "^(\\.model)\\s+([\\S]+)\\s+(\\w+)",
@@ -147,6 +160,10 @@
 							"name": "string.quoted.other.josim"
 						}
 					]
+				},
+				{
+					"match":"\\.(model|tran|subckt|ends|temp|neb|spread|iv|print|plot|file|save|param|control|endc|include)",
+					"name":"keyword.control.josim"
 				}
 			]
 		},
@@ -161,22 +178,7 @@
 		"comments": {
 			"patterns": [
 				{
-					"begin": "(\\*+\\s+top\\scell\\s*:\\s*\\S+)",
-					"beginCaptures": {
-						"1": {
-							"name": "keyword.control.less.josim"
-						}
-					},
-					"end": "\\n",
-					"patterns": [
-						{
-							"include": "#components"
-						}
-					]
-				},
-				{
-					"begin": "\\*{1,}",
-					"end": "\\n",
+					"match": "\\*.+",
 					"name": "comment.josim"
 				}
 			]
@@ -224,7 +226,11 @@
 		"components": {
 			"patterns": [
 				{
-					"begin": "(X\\w+)",
+					"match":"\\*.*",
+					"name":"comment.line"
+				},
+				{
+					"begin": "((X|x)\\w+)",
 					"end": "\\n",
 					"beginCaptures": {
 						"1": {
@@ -243,11 +249,11 @@
 					]
 				},
 				{
-					"begin": "(B\\S+)",
+					"begin": "((B|b)\\S+)",
 					"end": "\\n",
 					"beginCaptures": {
 						"1": {
-							"name": "constant.language"
+							"name": "variable.parameter.language"
 						}
 					},
 					"patterns": [
@@ -259,7 +265,7 @@
 							"match": "\\b(\\S+)\\s*=\\s*(\\S+)",
 							"captures": {
 								"1": {
-									"name": "variable.name"
+									"name": "variable.parameter"
 								},
 								"2": {
 									"name": "constant.numeric"
@@ -273,10 +279,10 @@
 					]
 				},
 				{
-					"begin": "(V\\S+)",
+					"begin": "([vViIpP]\\S+)",
 					"beginCaptures": {
 						"1": {
-							"name": "constant.language.josim"
+							"name": "variable.language"
 						}
 					},
 					"end": "\\n",
@@ -307,12 +313,29 @@
 					]
 				},
 				{
-					"begin": "\\*+",
+					"match": "^(K\\w+)\\s+(\\w+)\\s+(\\w)\\s+(\\w)",
+					"captures": {
+						"1":{
+							"name" :"variable.language"
+						},
+						"2":{
+							"name" :"variable.language"
+						},
+						"3":{
+							"name" :"variable.language"
+						},
+						"4":{
+							"name" :"constant.numeric"
+						}
+					}
+				},
+				{
+					"begin": "\\*.*",
 					"end": "\\n",
 					"name": "comment.josim"
 				},
 				{
-					"begin": "(\\S+)",
+					"begin": "^(\\w+)",
 					"end": "\\n",
 					"beginCaptures": {
 						"1": {
@@ -334,26 +357,17 @@
 						{
 							"match": "[0-9]+\\.?[0-9]+\\S+",
 							"name": "string.quoted.other.josim"
-						},
-						{
-							"match": "\\*\\S+",
-							"name": "comment.josim"
-						},
-						{
-							"match": "fcheck",
-							"name": "comment.josim"
+						},{
+							"match": "\\*.*",
+							"name":"comment.josim"
 						}
 					]
 				}
 			]
 		},
 		"EOF": {
-			"begin": "(.end)",
-			"beginCaptures": {
-				"1": {
-					"name": "keyword.control.josim"
-				}
-			},
+			"begin": "(\\.end)",
+			"name":"keyword.control.josim",
 			"end": "\\n\\n\\z",
 			"patterns": [
 				{

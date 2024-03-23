@@ -19,7 +19,7 @@
   ],
   "contributes": {
     "configuration": {
-      "title": "IfJplotSaveImege",
+      "title": "IntellisenseForJosim",
       "properties": {
         "saveImage.Format": {
           "type": "string",
@@ -35,19 +35,41 @@
           "type": "number",
           "default": 540,
           "description": "Image height you save"
+        },
+        "tmpFiles.saveCount": {
+          "type": "number",
+          "default": 5,
+          "maximum": 100,
+          "minimum": 1,
+          "description": "Files in the 'josim_resultCSV' folder will be deleted in chronological order once the count exceeds this number"
+        },
+        "formatter.wordSpacing": {
+          "type": "number",
+          "default": "16",
+          "minimun": "1",
+          "description": "managing the spacing between words in a string when formatting"
         }
       }
     },
     "commands": [
       {
-        "command": "extension.playButton",
-        "title": "Execute Simulation"
+        "command": "josim-cli.executeSimulation",
+        "title": "Execute Simulation",
+        "icon": "$(debug-start)",
+        "when": "resourceLangId == josim"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "josim-cli.executeSimulation",
+        "key": "ctrl+enter",
+        "when": "resourceLangId == josim"
       }
     ],
     "menus": {
       "editor/title": [
         {
-          "command": "extension.playButton",
+          "command": "josim-cli.executeSimulation",
           "group": "navigation",
           "when": "resourceLangId == josim"
         }
@@ -57,7 +79,6 @@
       {
         "id": "josim",
         "aliases": [
-          "josim-inp",
           "josim"
         ],
         "extensions": [

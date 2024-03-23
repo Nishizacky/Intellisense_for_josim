@@ -1,30 +1,43 @@
 const { exec } = require('child_process')
 const vscode = require("vscode")
 const fs = require('fs')
+const path = require("path")
 const csv = require('csv')
-let vsConfig = vscode.workspace.getConfiguration('saveImage');
-let toImageFormat = vsConfig.get('Format');
-let downloadImageWidth = vsConfig.get('Width');
-let downloadImageHeight = vsConfig.get('Height')
+const { exit } = require('process')
+const saveImage = vscode.workspace.getConfiguration('saveImage');
+const toImageFormat = saveImage.get('Format');
+const downloadImageWidth = saveImage.get('Width');
+const downloadImageHeight = saveImage.get('Height')
+const tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
+const saveCount = tmpFiles.get("saveCount")
 
-
-exports.showSimulationResult = async function (fspath) {
-    return vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: "",
-        cancellable: true
-    }, async (progress, token) => {
-        token.onCancellationRequested(() => {
-            console.log("User canceled the long running operation");
-        });
-        progress.report({ increment: 0 });
-        progress.report({ increment: 10, message: "Simulation progressing" });
-        let resultFilePath = await simulation_exec(fspath);
-        progress.report({ increment: 70, message: "Exporting output file" });
-        let result_html = await csv2html(resultFilePath);
-        progress.report({ increment: 80, message: "Loading HTML" });
-        ShowPlotDraw(result_html)
-    });
+exports.showSimulationResult = async function (uri) {
+    let fspath = uri.fsPath
+    if (fspath.includes(" ")) {
+        let suggest = fspath.replaceAll(" ","_")
+        let message = "Josim file name should not have 'space', please change it.\nsuggested: "+suggest
+        vscode.window.showErrorMessage(message)
+    } else {
+        let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
+        autoDeleteTmpFiles(tmp)
+        //マージンを取る時もこれより下の部分を書き換えれば対応できる。
+        return vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "",
+            cancellable: true
+        }, async (progress, token) => {
+            token.onCancellationRequested(() => {
+                console.log("User canceled the long running operation");
+            });
+            progress.report({ increment: 0 });
+            progress.report({ increment: 10, message: "Simulation progressing" });
+            let resultFilePath = await simulation_exec(fspath);
+            progress.report({ increment: 70, message: "Exporting output file" });
+            let result_html = await simulationResult2html(resultFilePath);
+            progress.report({ increment: 80, message: "Loading HTML" });
+            ShowPlotDraw(result_html)
+        })
+    }
 
 
 }
@@ -39,7 +52,7 @@ async function simulation_exec(fspath) {
         if (err) { throw "err: " + err }
     })
     const date = new Date();
-    const timestump = String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds()) +"_"+ String(date.getMonth()+1) + String(date.getDate()) +"_"+ String(date.getFullYear())
+    const timestump = String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds()) + "_" + String(date.getMonth() + 1) + String(date.getDate()) + "_" + String(date.getFullYear())
     const outputFilePath = filePath + '/jsm_out' + "_" + timestump + '.csv';
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
@@ -80,7 +93,7 @@ function getCsvResultFromSimulation(csvFilePath) {
 
 const transpose = a => a[0].map((_, c) => a.map(r => r[c]));
 
-async function csv2html(csvFilePath) {
+async function simulationResult2html(csvFilePath) {
     let htmlScript = " ";
     let divScript = " ";
     let unit;
@@ -138,7 +151,8 @@ async function csv2html(csvFilePath) {
 
     const config = {
         "responsive": true,
-        'modeBarButtonsToRemove': ['toImage']
+        'modeBarButtonsToRemove': ['toImage'],
+        "editable": true
     }
     let resolve = await getCsvResultFromSimulation(csvFilePath);
     name = resolve[0];
@@ -286,4 +300,48 @@ async function csv2html(csvFilePath) {
     const outputHtmlPath = csvFilePath.replace(".csv", ".html");
     fs.writeFileSync(outputHtmlPath, result_html.replace("<!DOCTYPE html>\n", ""));
     return result_html
+}
+
+async function getFileNamesInFolder(folderPath) {
+    try {
+        const filesInfo = [];
+        const files = await vscode.workspace.findFiles(
+            new vscode.RelativePattern(folderPath, '*')
+        );
+
+        for (const file of files) {
+            const fileName = path.basename(file.fsPath);
+            const stats = fs.statSync(file.fsPath);
+            const createdTime = stats.birthtime.getTime();
+            filesInfo.push({ fileName, filePath: file.fsPath, createdTime });
+        }
+        let sortedFiles = filesInfo.sort((a, b) => b.createdTime - a.createdTime)
+        let returnArray = []
+        sortedFiles.forEach(file => {
+            returnArray.push(file.filePath)
+        })
+        return returnArray;
+    } catch (error) {
+        console.error('Error occurred while getting file names:', error);
+        return [];
+    }
+}
+
+async function autoDeleteTmpFiles(filenames) {
+    let basenameArray = []
+    let noDuplicates = []
+    filenames.forEach(file => {
+        basenameArray.push(file.replace(/\..+/, ""))
+    })
+    noDuplicates = Array.from(new Set(basenameArray))
+
+    for (i = saveCount - 1; i < noDuplicates.length; i++) {
+        let regexSource = noDuplicates[i] + "\..+"
+        let re = new RegExp(regexSource)
+        filenames.filter(function (value) { return value.match(re) }).forEach(fname => {
+            fs.unlinkSync(fname)
+        })
+
+    }
+    console.log(noDuplicates);
 }

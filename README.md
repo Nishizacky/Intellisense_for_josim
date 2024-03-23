@@ -6,7 +6,7 @@
 - Snipetts for constant in the list of [Syntax Guide](https://joeydelp.github.io/JoSIM/syntax/)
 - Simulation executer
 - Simulation plotter
-- [unrelease] formatter
+- [beta] formatter
 - [unrelease] folding range provider
 
 ## Requirements
@@ -18,6 +18,8 @@
 ## Known Issues
 ## Release Notes
 
+- 2024 Febuary 28th: ver 0.2.8 released
+- 2024 Febuary 26th: ver 0.2.7 released
 - 2024 January 30th: ver 0.2.6 released
 - 2024 January 30th: ver 0.2.5 released
 - 2024 January 27th: ver 0.2.4 released
