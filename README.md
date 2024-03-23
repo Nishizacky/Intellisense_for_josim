@@ -11,7 +11,7 @@
 
 ## Requirements
 
-- You have to replace file extension .inp into .jsm or .josim for this extension
+- You have to replace file extension .inp, .cir or text file into .jsm to trigger this extension
 - You have to install [JoSIM](https://joeydelp.github.io/JoSIM/) to use 'Execute Simulation'
 
 ## Extension Settings
