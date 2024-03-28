@@ -9,10 +9,10 @@
 - [beta] formatter
 - [unrelease] folding range provider
 
-## Requirements
-
-- You have to replace file extension .inp, .cir or text file into .jsm to trigger this extension
-- You have to install [JoSIM](https://joeydelp.github.io/JoSIM/) to use 'Execute Simulation'
+## Quickstart
+- Install [JoSIM](https://joeydelp.github.io/JoSIM/)
+- Install VScode and this extension
+- Create new file, which name ends with '.jsm'
 
 ## Extension Settings
 ## Known Issues
