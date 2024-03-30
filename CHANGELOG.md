@@ -1,10 +1,13 @@
 # Change Log
+## [0.2.9]
+### New
+- A new configration properity added "saveImage.fontsize"
 ## [0.2.10]
 ### Fixes
 - bug fix
 ## [0.2.9]
 ### New
-- A new configration properity added
+- A new configration properity added "graph.timescale"
 ## [0.2.8]
 ### Fixes
 - Some issues with comand keybind were fixed

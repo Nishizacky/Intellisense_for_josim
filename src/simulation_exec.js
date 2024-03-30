@@ -8,6 +8,7 @@ const saveImage = vscode.workspace.getConfiguration('saveImage');
 const toImageFormat = saveImage.get('Format');
 const downloadImageWidth = saveImage.get('Width');
 const downloadImageHeight = saveImage.get('Height')
+const downloadImageFontSize = saveImage.get('fontsize')
 const tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
 const saveCount = tmpFiles.get("saveCount")
 const graphConfig = vscode.workspace.getConfiguration("graph")
@@ -131,7 +132,8 @@ async function simulationResult2html(csvFilePath) {
         exponentformat: 'e'
     }
     const font = {
-        family: "Times New Roman"
+        family: "Times New Roman",
+        size: downloadImageFontSize
     }
     let layout = (unit) => {
         return {

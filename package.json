@@ -36,6 +36,11 @@
           "default": 540,
           "description": "Image height you save"
         },
+        "saveImage.fontsize":{
+          "type":"number",
+          "default":18,
+          "minimum": 1
+        },
         "tmpFiles.saveCount": {
           "type": "number",
           "default": 5,
