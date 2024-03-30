@@ -1,4 +1,7 @@
 # Change Log
+## [0.2.9]
+### New
+- A new configration properity added
 ## [0.2.8]
 ### Fixes
 - Some issues with comand keybind were fixed
