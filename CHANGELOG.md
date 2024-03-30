@@ -1,4 +1,7 @@
 # Change Log
+## [0.2.12]
+### Other
+- Preformance improved
 ## [0.2.11]
 ### New
 - A new configration properity added "saveImage.fontsize"

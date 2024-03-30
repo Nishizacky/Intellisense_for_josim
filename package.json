@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.2.5",
+  "version": "0.2.12",
   "icon": "fileicons/id-icon-theme.png",
   "repository": {
     "type": "git",
@@ -36,9 +36,9 @@
           "default": 540,
           "description": "Image height you save"
         },
-        "saveImage.fontsize":{
-          "type":"number",
-          "default":18,
+        "saveImage.fontsize": {
+          "type": "number",
+          "default": 18,
           "minimum": 1
         },
         "tmpFiles.saveCount": {
