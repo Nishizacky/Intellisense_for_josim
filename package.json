@@ -48,6 +48,11 @@
           "default": "16",
           "minimun": "1",
           "description": "managing the spacing between words in a string when formatting"
+        },
+        "graph.timescale":{
+          "type":"string",
+          "enum": ["m: 10^-3","u: 10^-6","n: 10^-9","p: 10^-12","f: 10^-15"],
+          "default":"p(10e-16)"
         }
       }
     },
