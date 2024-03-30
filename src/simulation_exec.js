@@ -3,7 +3,7 @@ const vscode = require("vscode")
 const fs = require('fs')
 const path = require("path")
 const csv = require('csv')
-const { exit } = require('process')
+
 const saveImage = vscode.workspace.getConfiguration('saveImage');
 const toImageFormat = saveImage.get('Format');
 const downloadImageWidth = saveImage.get('Width');
