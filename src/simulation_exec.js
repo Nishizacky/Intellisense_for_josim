@@ -123,6 +123,8 @@ async function simulationResult2html(csvFilePath) {
     const voltageTitle = "Voltage [μV]"
     
     xaxisLabelPrefixUnit = prefixUnit.substr(0,1)
+    console.log(prefixUnit);
+    console.log(xaxisLabelPrefixUnit);
     const xaxis = {
         title: "Time ["+xaxisLabelPrefixUnit+"s]",
         showexponent: 'all',
@@ -163,7 +165,27 @@ async function simulationResult2html(csvFilePath) {
     resolve.shift();
     name.shift();
     const transposed = transpose(resolve);
-    time = transposed[0].map(val => val * 1e9)
+    let digitLength = 0
+    switch (xaxisLabelPrefixUnit) {
+        case "m":
+            digitLength = 1e3
+            break;
+        case "u":
+            digitLength = 1e6
+            break;
+        case "n":
+            digitLength = 1e9
+            break;
+        case "p":
+            digitLength = 1e12
+            break;
+        case "f":
+            digitLength = 1e15
+            break;
+        default:
+            break;
+    }
+    time = transposed[0].map(val => val * digitLength)
     value = transposed
     value.shift();
     for (i = 0; i < name.length; i++) {
@@ -186,27 +208,6 @@ async function simulationResult2html(csvFilePath) {
         };
         data.push(trace)
     }
-
-    let digitLength = 0
-    switch (xaxisLabelPrefixUnit) {
-        case "m":
-            digitLength = 1e3
-            break;
-        case "u":
-            digitLength = 1e6
-            break;
-        case "n":
-            digitLength = 1e9
-            break;
-        case "p":
-            digitLength = 1e12
-            break;
-        case "f":
-            digitLength = 1e15
-            break;
-        default:
-            break;
-    }
     
     for (i = 0; i < name.length; i++) {
         if (reP.test(name[i])) {
@@ -216,12 +217,12 @@ async function simulationResult2html(csvFilePath) {
             phaseData.push(data[i])
         } else if (reI.test(name[i])) {
             data[i].y = data[i].y.map((val) => {
-                return val * digitLength
+                return val * 1e6
             })
             currentData.push(data[i])
         } else if (reV.test(name[i])) {
             data[i].y = data[i].y.map((val) => {
-                return val * digitLength
+                return val * 1e6
             })
             voltageData.push(data[i])
         }

@@ -1,4 +1,7 @@
 # Change Log
+## [0.2.10]
+### Fixes
+- bug fix
 ## [0.2.9]
 ### New
 - A new configration properity added
