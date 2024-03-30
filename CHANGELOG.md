@@ -1,5 +1,5 @@
 # Change Log
-## [0.2.9]
+## [0.2.11]
 ### New
 - A new configration properity added "saveImage.fontsize"
 ## [0.2.10]
