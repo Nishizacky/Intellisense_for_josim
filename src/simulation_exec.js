@@ -10,6 +10,8 @@ const downloadImageWidth = saveImage.get('Width');
 const downloadImageHeight = saveImage.get('Height')
 const tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
 const saveCount = tmpFiles.get("saveCount")
+const graphConfig = vscode.workspace.getConfiguration("graph")
+const prefixUnit = graphConfig.get("timescale")
 
 exports.showSimulationResult = async function (uri) {
     let fspath = uri.fsPath
@@ -119,8 +121,10 @@ async function simulationResult2html(csvFilePath) {
     const phaseTitle = "Phase [rad]"
     const currentTitle = "Current [μA]"
     const voltageTitle = "Voltage [μV]"
+    
+    xaxisLabelPrefixUnit = prefixUnit.substr(0,1)
     const xaxis = {
-        title: "Time [ns]",
+        title: "Time ["+xaxisLabelPrefixUnit+"s]",
         showexponent: 'all',
         exponentformat: 'e'
     }
@@ -183,7 +187,27 @@ async function simulationResult2html(csvFilePath) {
         data.push(trace)
     }
 
-
+    let digitLength = 0
+    switch (xaxisLabelPrefixUnit) {
+        case "m":
+            digitLength = 1e3
+            break;
+        case "u":
+            digitLength = 1e6
+            break;
+        case "n":
+            digitLength = 1e9
+            break;
+        case "p":
+            digitLength = 1e12
+            break;
+        case "f":
+            digitLength = 1e15
+            break;
+        default:
+            break;
+    }
+    
     for (i = 0; i < name.length; i++) {
         if (reP.test(name[i])) {
             data[i].y = data[i].y.map((val) => {
@@ -192,12 +216,12 @@ async function simulationResult2html(csvFilePath) {
             phaseData.push(data[i])
         } else if (reI.test(name[i])) {
             data[i].y = data[i].y.map((val) => {
-                return val * 1e6
+                return val * digitLength
             })
             currentData.push(data[i])
         } else if (reV.test(name[i])) {
             data[i].y = data[i].y.map((val) => {
-                return val * 1e6
+                return val * digitLength
             })
             voltageData.push(data[i])
         }
