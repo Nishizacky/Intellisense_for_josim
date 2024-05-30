@@ -1,4 +1,9 @@
 # Change Log
+## [0.2.13]
+### Fixces
+- Syntax height issue when "K devname|devnode..."  is fixed
+### Other
+- vscode.ViewColumn is changed from One to Two
 ## [0.2.12]
 ### Other
 - Preformance improved

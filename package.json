@@ -12,7 +12,7 @@
   "engines": {
     "vscode": "^1.78.0"
   },
-  "main": "./src/minified/extension.min.js",
+  "main": "./src/extension.js",
   "activationEvents": [],
   "categories": [
     "Programming Languages"

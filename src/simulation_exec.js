@@ -74,7 +74,7 @@ function ShowPlotDraw(result_html) {
     let panel = vscode.window.createWebviewPanel(
         "plotData",
         "Plot-result",
-        vscode.ViewColumn.One,
+        vscode.ViewColumn.Two,
         {
             enableScripts: true,
         }

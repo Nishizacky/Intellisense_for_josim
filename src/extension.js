@@ -1,8 +1,8 @@
 const vscode = require("vscode");
-const superFinder = require("./minified/superFinder.min")
-const simulationExec = require("./minified/simulation_exec.min")
+const superFinder = require("./superFinder.js")
+const simulationExec = require("./simulation_exec.js")
 const JOSIM_MODE = { scheme: "file", language: "josim" };
-const jsmFormatter = require("./minified/formatter.min")
+const jsmFormatter = require("./formatter.js")
 
 function getCurrentWord(document, position) {
   const wordRange = document.getWordRangeAtPosition(
