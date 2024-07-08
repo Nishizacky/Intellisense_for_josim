@@ -12,7 +12,7 @@
   "engines": {
     "vscode": "^1.78.0"
   },
-  "main": "./src/minified/extension.min.js",
+  "main": "./src/extension.js",
   "activationEvents": [],
   "categories": [
     "Programming Languages"
@@ -127,6 +127,6 @@
     ]
   },
   "dependencies": {
-    "csv": "^6.3.8"
+    "csv-parse": "^6.3.8"
   }
 }
