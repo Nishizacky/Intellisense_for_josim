@@ -1,4 +1,8 @@
 # Change Log
+## [0.2.15]
+- Revert stable version (0.2.14 has a fatal error)
+## [0.2.14]
+- Optimized extension files structure
 ## [0.2.13]
 ### Fixces
 - Syntax height issue when "K devname|devnode..."  is fixed

@@ -2,7 +2,7 @@ const { exec } = require('child_process')
 const vscode = require("vscode")
 const fs = require('fs')
 const path = require("path")
-const csv = require('csv')
+const csv = require('csv-parse')
 
 const saveImage = vscode.workspace.getConfiguration('saveImage');
 const toImageFormat = saveImage.get('Format');
