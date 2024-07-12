@@ -1,4 +1,7 @@
 # Change Log
+## [0.2.16]
+- fix a problem
+- add a new command
 ## [0.2.15]
 - Revert stable version (0.2.14 has a fatal error)
 ## [0.2.14]

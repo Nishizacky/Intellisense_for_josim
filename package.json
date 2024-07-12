@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.2.15",
+  "version": "0.2.16",
   "icon": "fileicons/id-icon-theme.png",
   "repository": {
     "type": "git",
@@ -69,6 +69,12 @@
     },
     "commands": [
       {
+        "command": "josim-cli.executeSimulationNoPlot",
+        "title": "Execute Simulation without a plot",
+        "icon": "$(run)",
+        "when": "resourceLangId == josim"
+      },
+      {
         "command": "josim-cli.executeSimulation",
         "title": "Execute Simulation",
         "icon": "$(debug-start)",
@@ -80,15 +86,25 @@
         "command": "josim-cli.executeSimulation",
         "key": "ctrl+enter",
         "when": "resourceLangId == josim"
+      },
+      {
+        "command": "josim-cli.executeSimulationNoPlot",
+        "key": "ctrl+alt+enter",
+        "when": "resourceLangId == josim"
       }
     ],
     "menus": {
       "editor/title": [
         {
+          "command": "josim-cli.executeSimulationNoPlot",
+          "group": "navigation",
+          "when": "resourceLangId == josim"
+        },
+        {
           "command": "josim-cli.executeSimulation",
           "group": "navigation",
           "when": "resourceLangId == josim"
-        }
+        }        
       ]
     },
     "languages": [
