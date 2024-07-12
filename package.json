@@ -86,6 +86,11 @@
         "command": "josim-cli.executeSimulation",
         "key": "ctrl+enter",
         "when": "resourceLangId == josim"
+      },
+      {
+        "command": "josim-cli.executeSimulationNoPlot",
+        "key": "ctrl+alt+enter",
+        "when": "resourceLangId == josim"
       }
     ],
     "menus": {
