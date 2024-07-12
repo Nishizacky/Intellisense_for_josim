@@ -48,6 +48,14 @@ disposable.concat(
     }
   })
 )
+disposable.concat(
+  vscode.commands.registerCommand("josim-cli.executeSimulationNoPlot",()=>{
+    const activeTextEditor = vscode.window.activeTextEditor;
+    const uri = activeTextEditor.document.uri;
+    simulationExec.executeJosimCli(uri)
+  })
+)
+
 function activate(context) {
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(

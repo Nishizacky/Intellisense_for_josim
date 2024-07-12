@@ -69,6 +69,12 @@
     },
     "commands": [
       {
+        "command": "josim-cli.executeSimulationNoPlot",
+        "title": "Execute Simulation without a plot",
+        "icon": "$(run)",
+        "when": "resourceLangId == josim"
+      },
+      {
         "command": "josim-cli.executeSimulation",
         "title": "Execute Simulation",
         "icon": "$(debug-start)",
@@ -85,10 +91,15 @@
     "menus": {
       "editor/title": [
         {
+          "command": "josim-cli.executeSimulationNoPlot",
+          "group": "navigation",
+          "when": "resourceLangId == josim"
+        },
+        {
           "command": "josim-cli.executeSimulation",
           "group": "navigation",
           "when": "resourceLangId == josim"
-        }
+        }        
       ]
     },
     "languages": [

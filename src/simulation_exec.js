@@ -44,6 +44,30 @@ exports.showSimulationResult = async function (uri) {
 
 
 }
+exports.executeJosimCli = async function(uri){
+    let fspath = uri.fsPath
+    if (fspath.includes(" ")) {
+        let suggest = fspath.replaceAll(" ","_")
+        let message = "Josim file name should not have 'space', please change it.\nsuggested: "+suggest
+        vscode.window.showErrorMessage(message)
+    } else {
+        let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
+        autoDeleteTmpFiles(tmp)
+        return vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: "",
+            cancellable: true
+        }, async (progress, token) => {
+            token.onCancellationRequested(() => {
+                console.log("User canceled the long running operation");
+            });
+            progress.report({ increment: 0 });
+            progress.report({ increment: 10, message: "Simulating......" });
+            await simulation_exec(fspath);
+            progress.report({ increment: 100, message: "Simulation done!" });
+        })
+    }
+}
 async function simulation_exec(fspath) {
     const re = /\/[^\/]+$/
     let filePath = String(fspath).replace(re, "");
