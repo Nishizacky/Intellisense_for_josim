@@ -1,4 +1,6 @@
 # Change Log
+## [0.3.3]
+- bug fix 
 ## [0.3.2]
 - bug fix 
 ## [0.3.1]

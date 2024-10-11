@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "icon": "fileicons/icon.png",
   "repository": {
     "type": "git",
@@ -12,7 +12,7 @@
   "engines": {
     "vscode": "^1.78.0"
   },
-  "main": "./src/extension.min.js",
+  "main": "./dist/extension.js",
   "activationEvents": [],
   "categories": [
     "Programming Languages"
@@ -148,5 +148,15 @@
   },
   "dependencies": {
     "@fast-csv/parse": "^5.0.0"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "scripts": {
+    "watch": "webpack --mode development --watch",
+    "vscode:prepublish": "npm run package",
+    "package": "webpack --mode production --devtool hidden-source-map"
   }
 }

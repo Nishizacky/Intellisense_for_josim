@@ -1,9 +1,11 @@
-.vscode/**
-.vscode-test/**
+.vscode
 .gitignore
-.gitattributes
-test/**
+node_modules
+out/
 src/
-!src/*.min.js
-vsc-extension-quickstart.md
+tsconfig.json
+webpack.config.js
+esbuild.js
+test/
 fileicons/*.drawio
+dist/*map
