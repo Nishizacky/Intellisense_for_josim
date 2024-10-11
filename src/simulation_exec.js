@@ -275,6 +275,7 @@ async function simulationResult2html(csvFilePath) {
             } else {
                 txt = `$${String(i)}\\pi$`
             }
+            txt = txt + '\t'
             phaseLayout.yaxis.ticktext.push(txt)
         }
         phaseDataScript = `
