@@ -3,4 +3,7 @@
 .gitignore
 .gitattributes
 test/**
+src/
+!src/*.min.js
 vsc-extension-quickstart.md
+fileicons/*.drawio

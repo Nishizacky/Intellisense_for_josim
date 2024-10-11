@@ -1,4 +1,8 @@
 # Change Log
+## [0.3.1]
+- added fileicon
+- changed theme icon
+- optimized this extension package size
 ## [0.2.16]
 - fix a problem
 - add a new command
