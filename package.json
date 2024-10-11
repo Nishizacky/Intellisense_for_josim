@@ -3,8 +3,8 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.2.16",
-  "icon": "fileicons/id-icon-theme.png",
+  "version": "0.3.1",
+  "icon": "fileicons/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/Nishizacky/Intellisense_for_josim"
@@ -12,7 +12,7 @@
   "engines": {
     "vscode": "^1.78.0"
   },
-  "main": "./src/extension.js",
+  "main": "./src/extension.min.js",
   "activationEvents": [],
   "categories": [
     "Programming Languages"
@@ -104,7 +104,7 @@
           "command": "josim-cli.executeSimulation",
           "group": "navigation",
           "when": "resourceLangId == josim"
-        }        
+        }
       ]
     },
     "languages": [
@@ -117,7 +117,11 @@
           ".jsm",
           ".josim"
         ],
-        "configuration": "./syntaxes/language-configuration.json"
+        "configuration": "./syntaxes/language-configuration.json",
+        "icon": {
+          "light": "fileicons/fileicon.svg",
+          "dark": "fileicons/fileicon.svg"
+        }
       }
     ],
     "grammars": [
@@ -143,6 +147,6 @@
     ]
   },
   "dependencies": {
-    "csv-parse": "^5.5.6"
+    "@fast-csv/parse": "^5.0.0"
   }
 }
