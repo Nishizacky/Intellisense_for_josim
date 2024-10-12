@@ -17,6 +17,7 @@
 ## Known Issues
 ## Release Notes
 
+- 2024 October 11th: ver 0.3.4 released
 - 2024 October 11th: ver 0.3.3 released
 - 2024 October 11th: ver 0.3.2 released
 - 2024 October 11th: ver 0.3.1 released

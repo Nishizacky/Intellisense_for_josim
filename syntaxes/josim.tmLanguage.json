@@ -46,7 +46,7 @@
 					"name": "invalid.commentOut.josim"
 				},
 				{
-					"match": "\\b(PI|PHI_ZERO|BOLTZMANN|EV|HBAR|C|MU0|EPS0|SIGMA)\\b",
+					"match": "\\b([pP][iI] |[pP][hH][iI]_[zZ][eE][rR][oO] |[bB][oO][lL][tT][zZ][mM][aA][nN][nN] |[eE][vV] |[hH][bB][aA][rR] |[cC] |[mM][uU][00] |[eE][pP][sS][00] |[sS][iI][gG][mM][aA] )\\b",
 					"name": "constant.language.josim"
 				}
 			]
@@ -54,14 +54,14 @@
 		"controls": {
 			"patterns": [
 				{
-					"include": "#subckt"
+					"include": "#[sS][uU][bB][cC][kK][tT]"
 				},
 				{
-					"match": "^\\.(?!(model|tran|subckt|ends|end|temp|neb|spread|iv|print|plot|file|save|param|control|endc|include)).*",
+					"match": "^\\.(?!([mM][oO][dD][eE][lL]|[tT][rR][aA][nN]|[sS][uU][bB][cC][kK][tT]|[eE][nN][dD][sS]|[eE][nN][dD]|[tT][eE][mM][pP]|[nN][eE][bB]|[sS][pP][rR][eE][aA][dD]|[iI][vV]|[pP][rR][iI][nN][tT]|[pP][lL][oO][tT]|[fF][iI][lL][eE]|[sS][aA][vV][eE]|[pP][aA][rR][aA][mM]|[cC][oO][nN][tT][rR][oO][lL]|[eE][nN][dD][cC]|[iI][nN][cC][lL][uU][dD][eE])).*",
 					"name":"invalid.controle.josim"
 				},
 				{
-					"begin": "(\\.tran)\\s+(.+)",
+					"begin": "(\\.[tT][rR][aA][nN])\\s+(.+)",
 					"end": "\\n",
 					"beginCaptures": {
 						"1": {
@@ -73,13 +73,13 @@
 					}
 				},
 				{
-					"match": "(\\.print)\\s+(\\S+)\\s+(.+)",
+					"match": "(\\.[pP][rR][iI][nN][tT])\\s+(\\S+)\\s+(.+)",
 					"captures": {
 						"1": {
 							"name": "keyword.control"
 						},
 						"2": {
-							"name": "variable.paramaterType.josim"
+							"name": "variable.[pP][aA][rR][aA][mM]aterType.josim"
 						},
 						"3": {
 							"name": "string.quoted.other.devNode.josim"
@@ -87,7 +87,7 @@
 					}
 				},
 				{
-					"begin":"^.print\\s",
+					"begin":"^.[pP][rR][iI][nN][tT]\\s",
 					"end":"\\n",
 					"name":"keyword.control",
 					"patterns": [
@@ -95,7 +95,7 @@
 							"match":"(\\w)\\((\\w+)\\)",
 							"captures": {
 								"1":{
-									"name": "variable.paramaterType.josim"
+									"name": "variable.[pP][aA][rR][aA][mM]aterType.josim"
 								},
 								"2":{
 									"name": "string.quoted.other.devNode.josim"
@@ -105,7 +105,7 @@
 					]
 				},
 				{
-					"begin": "^(\\.model)\\s+([\\S]+)\\s+(\\w+)",
+					"begin": "^(\\.[mM][oO][dD][eE][lL])\\s+([\\S]+)\\s+(\\w+)",
 					"end": "\\n",
 					"beginCaptures": {
 						"1": {
@@ -133,7 +133,7 @@
 					]
 				},
 				{
-					"match": "(\\.param)\\s*(\\S+)\\s*=\\s*(\\S+)",
+					"match": "(\\.[pP][aA][rR][aA][mM])\\s*(\\S+)\\s*=\\s*(\\S+)",
 					"captures": {
 						"1": {
 							"name": "entity.name.type.josim"
@@ -162,7 +162,7 @@
 					]
 				},
 				{
-					"match":"\\.(model|tran|subckt|ends|temp|neb|spread|iv|print|plot|file|save|param|control|endc|include)",
+					"match":"\\.([mM][oO][dD][eE][lL]|[tT][rR][aA][nN]|[sS][uU][bB][cC][kK][tT]|[eE][nN][dD][sS]|[tT][eE][mM][pP]|[nN][eE][bB]|[sS][pP][rR][eE][aA][dD]|[iI][vV]|[pP][rR][iI][nN][tT]|[pP][lL][oO][tT]|[fF][iI][lL][eE]|[sS][aA][vV][eE]|[pP][aA][rR][aA][mM]|[cC][oO][nN][tT][rR][oO][lL]|[eE][nN][dD][cC]|[iI][nN][cC][lL][uU][dD][eE])",
 					"name":"keyword.control.josim"
 				}
 			]
@@ -194,9 +194,9 @@
 				}
 			]
 		},
-		"subckt": {
-			"begin": "(\\.subckt)\\s+(\\S+)\\s(.+)",
-			"end": "(\\.ends)",
+		"[sS][uU][bB][cC][kK][tT]": {
+			"begin": "(\\.[sS][uU][bB][cC][kK][tT])\\s+(\\S+)\\s(.+)",
+			"end": "(\\.[eE][nN][dD][sS])",
 			"beginCaptures": {
 				"1": {
 					"name": "entity.name.type.josim"
@@ -215,7 +215,7 @@
 			},
 			"patterns": [
 				{
-					"match": ".end[^s]+",
+					"match": ".[eE][nN][dD][^s]+",
 					"name": "invalid.josim"
 				},
 				{
@@ -265,7 +265,7 @@
 							"match": "\\b(\\S+)\\s*=\\s*(\\S+)",
 							"captures": {
 								"1": {
-									"name": "variable.parameter"
+									"name": "variable.[pP][aA][rR][aA][mM]eter"
 								},
 								"2": {
 									"name": "constant.numeric"
@@ -313,7 +313,7 @@
 					]
 				},
 				{
-					"match": "^(K\\w+)\\s+(\\S+)\\s+(\\S)\\s+(\\w)",
+					"match": "^([kK]\\w+)\\s+([\\w]+)\\s+([\\w])\\s+(\\w)",
 					"captures": {
 						"1":{
 							"name" :"variable.language"
@@ -366,7 +366,7 @@
 			]
 		},
 		"EOF": {
-			"begin": "(\\.end)",
+			"begin": "(\\.[eE][nN][dD])",
 			"name":"keyword.control.josim",
 			"end": "\\n\\n\\z",
 			"patterns": [
