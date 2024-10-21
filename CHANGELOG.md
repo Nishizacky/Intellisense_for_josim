@@ -1,4 +1,6 @@
 # Change Log
+## [0.3.5]
+- rule of outputlogfile was changed (HMS_MMDD_YYYY -> YYYYMMDDHMS)
 ## [0.3.4]
 - highlighter fix
 ## [0.3.3]

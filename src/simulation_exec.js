@@ -3,21 +3,32 @@ const vscode = require("vscode")
 const fs = require('fs')
 const path = require("path")
 const csv = require('@fast-csv/parse')
-const saveImage = vscode.workspace.getConfiguration('saveImage');
-const toImageFormat = saveImage.get('Format');
-const downloadImageWidth = saveImage.get('Width');
-const downloadImageHeight = saveImage.get('Height')
-const downloadImageFontSize = saveImage.get('fontsize')
-const tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
-const saveCount = tmpFiles.get("saveCount")
-const graphConfig = vscode.workspace.getConfiguration("graph")
-const prefixUnit = graphConfig.get("timescale")
+function load_config() {
+    saveImage = vscode.workspace.getConfiguration('saveImage');
+    toImageFormat = saveImage.get('Format');
+    downloadImageWidth = saveImage.get('Width');
+    downloadImageHeight = saveImage.get('Height')
+    downloadImageFontSize = saveImage.get('fontsize')
+    tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
+    saveCount = tmpFiles.get("saveCount")
+    graphConfig = vscode.workspace.getConfiguration("graph")
+    prefixUnit = graphConfig.get("timescale")
+}
+let saveImage = vscode.workspace.getConfiguration('saveImage');
+let toImageFormat = saveImage.get('Format');
+let downloadImageWidth = saveImage.get('Width');
+let downloadImageHeight = saveImage.get('Height')
+let downloadImageFontSize = saveImage.get('fontsize')
+let tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
+let saveCount = tmpFiles.get("saveCount")
+let graphConfig = vscode.workspace.getConfiguration("graph")
+let prefixUnit = graphConfig.get("timescale")
 
 exports.showSimulationResult = async function (uri) {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
-        let suggest = fspath.replaceAll(" ","_")
-        let message = "Josim file name should not have 'space', please change it.\nsuggested: "+suggest
+        let suggest = fspath.replaceAll(" ", "_")
+        let message = "Josim file name should not have 'space', please change it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
         let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
@@ -30,6 +41,7 @@ exports.showSimulationResult = async function (uri) {
         }, async (progress, token) => {
             token.onCancellationRequested(() => {
                 console.log("User canceled the long running operation");
+                return
             });
             progress.report({ increment: 0 });
             progress.report({ increment: 10, message: "Simulation progressing" });
@@ -37,17 +49,17 @@ exports.showSimulationResult = async function (uri) {
             progress.report({ increment: 70, message: "Exporting output file" });
             let result_html = await simulationResult2html(resultFilePath);
             progress.report({ increment: 80, message: "Loading HTML" });
-            ShowPlotDraw(result_html)
+            ShowPlotDraw(result_html, fspath)
         })
     }
 
 
 }
-exports.executeJosimCli = async function(uri){
+exports.executeJosimCli = async function (uri) {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
-        let suggest = fspath.replaceAll(" ","_")
-        let message = "Josim file name should not have 'space', please change it.\nsuggested: "+suggest
+        let suggest = fspath.replaceAll(" ", "_")
+        let message = "Josim file name should not have 'space', please change it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
         let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
@@ -78,7 +90,7 @@ async function simulation_exec(fspath) {
         if (err) { throw "err: " + err }
     })
     const date = new Date();
-    const timestump = String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds()) + "_" + String(date.getMonth() + 1) + String(date.getDate()) + "_" + String(date.getFullYear())
+    const timestump = String(date.getFullYear()) + String(date.getMonth() + 1) + String(date.getDate()) + "_" + String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds())
     const outputFilePath = filePath + '/jsm_out' + "_" + timestump + '.csv';
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
@@ -92,14 +104,21 @@ async function simulation_exec(fspath) {
     })
 }
 
-function ShowPlotDraw(result_html) {
+function ShowPlotDraw(result_html, filename) {
     //返り値はhtmlの文章に使う
+    let re = /.+\//
+    filename = filename.replace(re, "")
+    re = /\..+/
+    filename = filename.replace(re, "")
     let panel = vscode.window.createWebviewPanel(
         "plotData",
-        "Plot-result",
-        vscode.ViewColumn.Two,
+        `Plot-result: ${filename}`,
         {
-            enableScripts: true,
+            viewColumn: vscode.ViewColumn.Two,
+            preserveFocus: true
+        },
+        {
+            enableScripts: true   
         }
     );
 
@@ -145,12 +164,10 @@ async function simulationResult2html(csvFilePath) {
     const phaseTitle = "Phase [rad]"
     const currentTitle = "Current [μA]"
     const voltageTitle = "Voltage [μV]"
-    
-    xaxisLabelPrefixUnit = prefixUnit.substr(0,1)
-    console.log(prefixUnit);
-    console.log(xaxisLabelPrefixUnit);
+    load_config()
+    xaxisLabelPrefixUnit = prefixUnit.substr(0, 1)
     const xaxis = {
-        title: "Time ["+xaxisLabelPrefixUnit+"s]",
+        title: "Time [" + xaxisLabelPrefixUnit + "s]",
         showexponent: 'all',
         exponentformat: 'e'
     }
@@ -233,7 +250,7 @@ async function simulationResult2html(csvFilePath) {
         };
         data.push(trace)
     }
-    
+
     for (i = 0; i < name.length; i++) {
         if (reP.test(name[i])) {
             data[i].y = data[i].y.map((val) => {
@@ -329,9 +346,10 @@ async function simulationResult2html(csvFilePath) {
     const result_html = `<!DOCTYPE html>
     <html>
         <head>
-            <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
-            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js" ></script>
         </head>
+        <body>
         ${showdata.div}
         <script>
             ${showdata.script}
@@ -346,6 +364,7 @@ async function simulationResult2html(csvFilePath) {
                     });
             }
         </script>
+        </body>
     </html>
   `;
     const outputHtmlPath = csvFilePath.replace(".csv", ".html");

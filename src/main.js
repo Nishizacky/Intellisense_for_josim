@@ -36,6 +36,7 @@ let disposable = [];
 disposable.concat(
   vscode.commands.registerCommand("josim-cli.executeSimulation", () => {
     const activeEditor = vscode.window.activeTextEditor;
+    activeEditor.document.save();
     const uri = activeEditor.document.uri;
     simulationExec.showSimulationResult(uri)
   }
@@ -51,6 +52,7 @@ disposable.concat(
 disposable.concat(
   vscode.commands.registerCommand("josim-cli.executeSimulationNoPlot",()=>{
     const activeTextEditor = vscode.window.activeTextEditor;
+    activeEditor.document.save();
     const uri = activeTextEditor.document.uri;
     simulationExec.executeJosimCli(uri)
   })
