@@ -3,6 +3,7 @@ const superFinder = require("./superFinder.js")
 const simulationExec = require("./simulation_exec.js")
 const JOSIM_MODE = { scheme: "file", language: "josim" };
 const jsmFormatter = require("./formatter.js")
+const { checkSyntax } = require("./syntaxChecker.js")
 
 function getCurrentWord(document, position) {
   const wordRange = document.getWordRangeAtPosition(
@@ -50,7 +51,7 @@ disposable.concat(
   })
 )
 disposable.concat(
-  vscode.commands.registerCommand("josim-cli.executeSimulationNoPlot",()=>{
+  vscode.commands.registerCommand("josim-cli.executeSimulationNoPlot", () => {
     const activeTextEditor = vscode.window.activeTextEditor;
     activeEditor.document.save();
     const uri = activeTextEditor.document.uri;
@@ -58,6 +59,9 @@ disposable.concat(
   })
 )
 
+disposable.concat(
+
+)
 function activate(context) {
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
@@ -71,8 +75,20 @@ function activate(context) {
       new JOSIM_DefinitionProvider()
     )
   );
-  for (let i = 0; i < disposable.length; i++) { context.subscriptions.push(disposable[i]) }
+  const collection = vscode.languages.createDiagnosticCollection('jsm_report');
 
+  for (let i = 0; i < disposable.length; i++) { context.subscriptions.push(disposable[i]) }
+  if (vscode.window.activeTextEditor) {
+    checkSyntax(vscode.window.activeTextEditor.document, collection);
+  }
+  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
+    if (editor) {
+      checkSyntax(editor.document, collection);
+    }
+  }));
+  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument( _ => {
+    checkSyntax(vscode.window.activeTextEditor.document, collection);
+  }))
 }
 
 function deactivate() {
