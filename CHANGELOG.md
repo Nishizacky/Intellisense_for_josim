@@ -1,4 +1,7 @@
 # Change Log
+## [0.4.0]
+- language changed: js -> ts
+- Fixed an issue that caused text(especially π) to display incorrectly
 ## [0.3.5]
 - rule of outputlogfile was changed (HMS_MMDD_YYYY -> YYYYMMDDHMS)
 ## [0.3.4]

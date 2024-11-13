@@ -1,68 +1,70 @@
-const vscode = require("vscode");
-const superFinder = require("./superFinder.js")
-const simulationExec = require("./simulation_exec.js")
-const JOSIM_MODE = { scheme: "file", language: "josim" };
-const jsmFormatter = require("./formatter.js")
-const { checkSyntax } = require("./syntaxChecker.js")
 
-function getCurrentWord(document, position) {
+import * as vscode from "vscode";
+import { superFinder } from "./superFinder"
+import { showSimulationResult, executeJosimCli } from "./simulation_exec"
+import { checkSyntax } from "./syntaxChecker"
+import { jsmFormatter } from "./formatter"
+const JOSIM_MODE = { scheme: "file", language: "josim" };
+
+function getCurrentWord(document: vscode.TextDocument, position: vscode.Position):string {
   const wordRange = document.getWordRangeAtPosition(
     position,
     /[\.a-zA-Z0-9_]+/
   );
-  if (!wordRange) return null;
+  if(wordRange){
   const currentWord = document
     .lineAt(position.line)
     .text.slice(wordRange.start.character, wordRange.end.character);
-  return currentWord;
+  return currentWord;}
+  throw console.log(`wordRange: ${wordRange}`);
 }
 class JOSIM_HoverProvider {
-  async provideHover(document, position, token) {
+  async provideHover(document: any, position: any, token: any) {
     const currentWord = getCurrentWord(document, position);
-    var gotText = await superFinder.superFinder(document, currentWord, "range");
-    var hoverstring = new vscode.MarkdownString();
+    let gotText = await superFinder(document, currentWord, "range");
+    let hoverstring = new vscode.MarkdownString();
     hoverstring.appendCodeblock(gotText, "josim");
     return Promise.resolve(new vscode.Hover(hoverstring));
   }
 }
 class JOSIM_DefinitionProvider {
-  async provideDefinition(document, position, token) {
+  async provideDefinition(document: any, position: any, token: any) {
     const currentWord = getCurrentWord(document, position);
-    return superFinder.superFinder(document, currentWord, "loc");
+    return superFinder(document, currentWord, "loc");
   }
 }
 
-let disposable = [];
+let disposable: any = [];
 
 disposable.concat(
   vscode.commands.registerCommand("josim-cli.executeSimulation", () => {
     const activeEditor = vscode.window.activeTextEditor;
-    activeEditor.document.save();
-    const uri = activeEditor.document.uri;
-    simulationExec.showSimulationResult(uri)
+    if (activeEditor) {
+      activeEditor.document.save();
+      const uri = activeEditor.document.uri;
+      showSimulationResult(uri)
+    }
   }
   )
 )
 disposable.concat(
   vscode.languages.registerDocumentFormattingEditProvider('josim', {
-    provideDocumentFormattingEdits(document) {
-      return jsmFormatter.jsmFormatter(document)
+    provideDocumentFormattingEdits(document: any) {
+      return jsmFormatter(document)
     }
   })
 )
 disposable.concat(
   vscode.commands.registerCommand("josim-cli.executeSimulationNoPlot", () => {
     const activeTextEditor = vscode.window.activeTextEditor;
-    activeEditor.document.save();
-    const uri = activeTextEditor.document.uri;
-    simulationExec.executeJosimCli(uri)
+    if (activeTextEditor) {
+      activeTextEditor.document.save();
+      const uri = activeTextEditor.document.uri;
+      executeJosimCli(uri)
+    }
   })
 )
-
-disposable.concat(
-
-)
-function activate(context) {
+function activate(context: any) {
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
       JOSIM_MODE,
@@ -81,13 +83,13 @@ function activate(context) {
   if (vscode.window.activeTextEditor) {
     checkSyntax(vscode.window.activeTextEditor.document, collection);
   }
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(editor => {
+  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor: any) => {
     if (editor) {
       checkSyntax(editor.document, collection);
     }
   }));
-  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument( _ => {
-    checkSyntax(vscode.window.activeTextEditor.document, collection);
+  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((_: any) => {
+    if (vscode.window.activeTextEditor) checkSyntax(vscode.window.activeTextEditor.document, collection);
   }))
 }
 
@@ -95,4 +97,4 @@ function deactivate() {
   return undefined;
 }
 
-module.exports = { activate, deactivate };
+export { activate, deactivate };

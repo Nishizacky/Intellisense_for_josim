@@ -1,8 +1,8 @@
-const vscode = require("vscode")
+import vscode from "vscode"
 const formatter = vscode.workspace.getConfiguration('formatter');
-const wordSpacing = formatter.get("wordSpacing")
+const wordSpacing = <number>formatter.get("wordSpacing")
 
-exports.jsmFormatter = function (document) {
+export function jsmFormatter(document: vscode.TextDocument) {
   let wordLengthMax = 0
   let maxWord = ""
   let stack = []
