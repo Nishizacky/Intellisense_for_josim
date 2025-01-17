@@ -1,4 +1,3 @@
-
 import * as vscode from "vscode";
 import { superFinder } from "./superFinder"
 import { showSimulationResult, executeJosimCli } from "./simulation_exec"
@@ -34,9 +33,9 @@ class JOSIM_DefinitionProvider {
   }
 }
 
-let disposable: any = [];
+let disposable: any[] = []; // 修正: 初期化方法を変更
 
-disposable.concat(
+disposable = disposable.concat(
   vscode.commands.registerCommand("josim-cli.executeSimulation", () => {
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor) {
@@ -44,17 +43,18 @@ disposable.concat(
       const uri = activeEditor.document.uri;
       showSimulationResult(uri)
     }
-  }
-  )
-)
-disposable.concat(
+  })
+);
+
+disposable = disposable.concat(
   vscode.languages.registerDocumentFormattingEditProvider('josim', {
     provideDocumentFormattingEdits(document: any) {
       return jsmFormatter(document)
     }
   })
-)
-disposable.concat(
+);
+
+disposable = disposable.concat(
   vscode.commands.registerCommand("josim-cli.executeSimulationNoPlot", () => {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (activeTextEditor) {
@@ -63,7 +63,8 @@ disposable.concat(
       executeJosimCli(uri)
     }
   })
-)
+);
+
 function activate(context: any) {
   context.subscriptions.push(
     vscode.languages.registerHoverProvider(
@@ -80,17 +81,22 @@ function activate(context: any) {
   const collection = vscode.languages.createDiagnosticCollection('jsm_report');
 
   for (let i = 0; i < disposable.length; i++) { context.subscriptions.push(disposable[i]) }
-  if (vscode.window.activeTextEditor) {
-    checkSyntax(vscode.window.activeTextEditor.document, collection);
-  }
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor: any) => {
-    if (editor) {
-      checkSyntax(editor.document, collection);
-    }
-  }));
-  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((_: any) => {
-    if (vscode.window.activeTextEditor) checkSyntax(vscode.window.activeTextEditor.document, collection);
-  }))
+  // if (vscode.window.activeTextEditor) {
+  //   checkSyntax(vscode.window.activeTextEditor.document, collection);
+  // }
+  // context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((editor: any) => {
+  //   if (editor) {
+  //     checkSyntax(editor.document, collection);
+  //   }
+  // }));
+  // context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event: vscode.TextDocumentChangeEvent) => {
+  //   if (event.document === vscode.window.activeTextEditor?.document) {
+  //     checkSyntax(event.document, collection);
+  //   }
+  // }));
+  // context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((document: vscode.TextDocument) => {
+  //   checkSyntax(document, collection);
+  // }));
 }
 
 function deactivate() {

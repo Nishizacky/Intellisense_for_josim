@@ -10,8 +10,11 @@ export function checkSyntax(document: vscode.TextDocument, collection: vscode.Di
 		vscode.window.showInformationMessage("filename should not contain ' '.");
 	}
 
-	const string_for_exec = 'josim-cli -m ' + fspath
-
+	
+	var fileContent:string = document.getText().toUpperCase();
+	const re_tran:RegExp = /\.TRAN.+/
+	let fileContentInput:string=fileContent.replace(re_tran,".tran 1p 1p 1p 1p")
+	const string_for_exec:string = 'josim-cli -i -m\n' + fileContentInput
 	exec(string_for_exec, (err: Error|null, stdout: string, stderr: string) => {
 		collection.clear()
 		const match = stderr.match(/Infringing line: (.+)/)
@@ -22,7 +25,7 @@ export function checkSyntax(document: vscode.TextDocument, collection: vscode.Di
 			let start_offset = document.getText().search(reg);
 			let start_position = document.positionAt(start_offset);
 			let range = document.lineAt(start_position).range
-			console.log(range);
+			// console.log(range);
 
 			collection.set(document.uri, [{
 				code: '',

@@ -1,4 +1,7 @@
 # Change Log
+## [0.4.1]
+- The syntax checker was not working correctly, so the feature has been disabled.
+- Improved a feature to cancel the simulator, allowing the simulation process to be killed by pid.
 ## [0.4.0]
 - language changed: js -> ts
 - Fixed an issue that caused text(especially π) to display incorrectly

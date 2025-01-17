@@ -1,5 +1,5 @@
 'use strict';
-import {exec} from 'child_process';
+import { exec } from 'child_process';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from "path";
@@ -25,6 +25,9 @@ let saveCount = tmpFiles.get("saveCount")
 let graphConfig = vscode.workspace.getConfiguration("graph")
 let prefixUnit = graphConfig.get("timescale") as string
 
+let josimProcessPid = [] as number[]
+
+
 export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
@@ -41,7 +44,15 @@ export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
             cancellable: true
         }, async (progress: any, token: any) => {
             token.onCancellationRequested(() => {
-                console.log("User canceled the long running operation");
+                if (josimProcessPid.length > 0) {
+                    const pid = josimProcessPid.pop() as number;
+                    try {
+                        process.kill(pid);
+                        console.log(`Process ${pid} was terminated`);
+                    } catch (err) {
+                        console.error(`Failed to kill process ${pid}:`, err);
+                    }
+                }
                 return
             });
             progress.report({ increment: 0 });
@@ -72,7 +83,17 @@ export async function executeJosimCli(uri: vscode.Uri): Promise<void> {
             cancellable: true
         }, async (progress: any, token: any) => {
             token.onCancellationRequested(() => {
-                console.log("User canceled the long running operation");
+                if (josimProcessPid.length > 0) {
+                    const pid = josimProcessPid.pop() as number;
+                    try {
+                        process.kill(pid);
+                        console.log(`Process ${pid} was terminated`);
+                    } catch (err) {
+                        console.error(`Failed to kill process ${pid}:`, err);
+                    }
+                }
+
+                return
             });
             progress.report({ increment: 0 });
             progress.report({ increment: 10, message: "Simulating......" });
@@ -96,14 +117,20 @@ async function simulation_exec(fspath: any) {
     const outputFilePath = filePath + '/jsm_out' + "_" + timestump + '.csv';
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
-        exec(string_for_exec, (err: any, stdout: any, stderr: any) => {
+        const child = exec(string_for_exec, (err, stdout, stderr) => {
             if (err) {
-
-                reject(vscode.window.showErrorMessage(stderr));
+                if (stderr.includes("Terminated")) {
+                    reject(vscode.window.showInformationMessage("Simulation ",stderr));
+                } else {
+                    reject(vscode.window.showErrorMessage(stderr));
+                }
             }
             resolve(outputFilePath)
-        })
-    });
+        });
+        if (child.pid !== undefined) {
+            josimProcessPid.push(child.pid + 1);
+        }
+    })
 }
 
 function ShowPlotDraw(result_html: any, filename: any) {

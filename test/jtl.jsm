@@ -20,6 +20,6 @@ VIN        4          0          pwl(0 0 300p 0 302.5p 827.13u 305p 0 600p 0 602
 .print DEVV VIN
 .print DEVI ROUT
 .print PHASE B01
-.print PHASE B02
+.print PHSE B02
 * .file hogehoge.csv
 .end
