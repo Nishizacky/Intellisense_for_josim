@@ -1,23 +1,19 @@
-const vscode = require("vscode")
-exports.superFinder = async function (document, currentWord, mode) {
-    var uri = await docSelector(document);
+import vscode from "vscode"
+export async function superFinder(document: vscode.TextDocument, currentWord: string, mode: any): Promise<any> {
+    let uri = await docSelector(document);
     if (uri != null) {
         for (const docuri of uri) {
             const refDoc = await vscode.workspace.openTextDocument(docuri);
-            var result = findwhere(refDoc, currentWord, mode);
+            let result = findwhere(refDoc, currentWord, mode);
             if (result != null) {
                 return result;
             }
         }
     }
-    var result = findwhere(document, currentWord, mode);
-    if (result != null) {
-        return result;
-    }
-    return null
+    return null;
 }
 
-async function docSelector(document) {
+async function docSelector(document: any) {
     var text = document.getText();
     var searchStr = new RegExp(/\.include\s+(\S+)/, "g");
     var incFileName = text.match(searchStr) || [];
@@ -35,13 +31,15 @@ async function docSelector(document) {
     }
     return docUri;
 }
-function findwhere(document, currentWord, mode = "loc") {
-    // var rejectStr = new RegExp(/^(L|R|B|C|[0-9])/, "g");
-    // if (currentWord.match(rejectStr) != null) {
-    //   return null;
-    // }
+
+function findwhere(document: vscode.TextDocument, currentWord: string, mode: "loc"): vscode.Location;
+function findwhere(document: vscode.TextDocument, currentWord: string, mode: "range"): string;
+function findwhere(document: vscode.TextDocument, currentWord: string, mode: "hitline"): vscode.TextLine;
+function findwhere(document: vscode.TextDocument, currentWord: string, mode: "hitchar"): number;
+
+function findwhere(document: vscode.TextDocument, currentWord: string, mode: "loc" | "range" | "hitline" | "hitchar"): vscode.Location | string | vscode.TextLine | number {
     if (currentWord == ".subckt") {
-        return vscode.window.showInformationMessage("This is the definition.");
+        throw vscode.window.showInformationMessage("This is the definition.");
     }
     var text = document.getText();
     var loc = null;
@@ -59,6 +57,7 @@ function findwhere(document, currentWord, mode = "loc") {
         loc = new vscode.Location(document.uri, pos); // locの値を設定
         const hitchar = document.lineAt(pos).text.indexOf(currentWord);
         if (mode === "loc") return loc;
+        // @ts-expect-error TS(2304): Cannot find name 'position'.
         else if (mode === "hitline") return document.lineAt(position);
         else if (mode === "hitchar") return hitchar;
         else if (mode === "range") {
@@ -70,11 +69,12 @@ function findwhere(document, currentWord, mode = "loc") {
         loc = new vscode.Location(document.uri, pos); // locの値を設定
         const hitchar = document.lineAt(pos).text.indexOf(currentWord);
         if (mode === "loc") return loc;
+        // @ts-expect-error TS(2304): Cannot find name 'position'.
         else if (mode === "hitline") return document.lineAt(position);
         else if (mode === "hitchar") return hitchar;
         else if (mode === "range") {
             return scriptRange.text;
         } else console.log("mode isn't defined");
     } else console.log("search failed")
-    return null;
+    throw console.log(`${currentWord} not found`)
 }

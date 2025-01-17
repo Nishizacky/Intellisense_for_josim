@@ -1,8 +1,9 @@
-const { exec } = require('child_process')
-const vscode = require("vscode")
-const fs = require('fs')
-const path = require("path")
-const csv = require('@fast-csv/parse')
+'use strict';
+import { exec } from 'child_process';
+import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from "path";
+import * as csv from '@fast-csv/parse';
 function load_config() {
     saveImage = vscode.workspace.getConfiguration('saveImage');
     toImageFormat = saveImage.get('Format');
@@ -12,7 +13,7 @@ function load_config() {
     tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
     saveCount = tmpFiles.get("saveCount")
     graphConfig = vscode.workspace.getConfiguration("graph")
-    prefixUnit = graphConfig.get("timescale")
+    prefixUnit = graphConfig.get("timescale") as string
 }
 let saveImage = vscode.workspace.getConfiguration('saveImage');
 let toImageFormat = saveImage.get('Format');
@@ -22,9 +23,12 @@ let downloadImageFontSize = saveImage.get('fontsize')
 let tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
 let saveCount = tmpFiles.get("saveCount")
 let graphConfig = vscode.workspace.getConfiguration("graph")
-let prefixUnit = graphConfig.get("timescale")
+let prefixUnit = graphConfig.get("timescale") as string
 
-exports.showSimulationResult = async function (uri) {
+let josimProcessPid = [] as number[]
+
+
+export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
         let suggest = fspath.replaceAll(" ", "_")
@@ -38,9 +42,17 @@ exports.showSimulationResult = async function (uri) {
             location: vscode.ProgressLocation.Notification,
             title: "",
             cancellable: true
-        }, async (progress, token) => {
+        }, async (progress: any, token: any) => {
             token.onCancellationRequested(() => {
-                console.log("User canceled the long running operation");
+                if (josimProcessPid.length > 0) {
+                    const pid = josimProcessPid.pop() as number;
+                    try {
+                        process.kill(pid);
+                        console.log(`Process ${pid} was terminated`);
+                    } catch (err) {
+                        console.error(`Failed to kill process ${pid}:`, err);
+                    }
+                }
                 return
             });
             progress.report({ increment: 0 });
@@ -50,12 +62,13 @@ exports.showSimulationResult = async function (uri) {
             let result_html = await simulationResult2html(resultFilePath);
             progress.report({ increment: 80, message: "Loading HTML" });
             ShowPlotDraw(result_html, fspath)
-        })
+        });
     }
 
 
 }
-exports.executeJosimCli = async function (uri) {
+
+export async function executeJosimCli(uri: vscode.Uri): Promise<void> {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
         let suggest = fspath.replaceAll(" ", "_")
@@ -68,25 +81,35 @@ exports.executeJosimCli = async function (uri) {
             location: vscode.ProgressLocation.Notification,
             title: "",
             cancellable: true
-        }, async (progress, token) => {
+        }, async (progress: any, token: any) => {
             token.onCancellationRequested(() => {
-                console.log("User canceled the long running operation");
+                if (josimProcessPid.length > 0) {
+                    const pid = josimProcessPid.pop() as number;
+                    try {
+                        process.kill(pid);
+                        console.log(`Process ${pid} was terminated`);
+                    } catch (err) {
+                        console.error(`Failed to kill process ${pid}:`, err);
+                    }
+                }
+
+                return
             });
             progress.report({ increment: 0 });
             progress.report({ increment: 10, message: "Simulating......" });
             await simulation_exec(fspath);
             progress.report({ increment: 100, message: "Simulation done!" });
-        })
+        });
     }
 }
-async function simulation_exec(fspath) {
+async function simulation_exec(fspath: any) {
     const re = /\/[^\/]+$/
     let filePath = String(fspath).replace(re, "");
     if (filePath.includes(' ')) {
         vscode.window.showInformationMessage("filename should not contain ' '.");
     }
     filePath = filePath + "/josim_resultCSV"
-    fs.mkdir(filePath, (err) => {
+    fs.mkdir(filePath, (err: any) => {
         if (err) { throw "err: " + err }
     })
     const date = new Date();
@@ -94,17 +117,23 @@ async function simulation_exec(fspath) {
     const outputFilePath = filePath + '/jsm_out' + "_" + timestump + '.csv';
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
-        exec(string_for_exec, (err, stdout, stderr) => {
+        const child = exec(string_for_exec, (err, stdout, stderr) => {
             if (err) {
-
-                reject(vscode.window.showErrorMessage(stderr));
+                if (stderr.includes("Terminated")) {
+                    reject(vscode.window.showInformationMessage("Simulation ",stderr));
+                } else {
+                    reject(vscode.window.showErrorMessage(stderr));
+                }
             }
             resolve(outputFilePath)
-        })
+        });
+        if (child.pid !== undefined) {
+            josimProcessPid.push(child.pid + 1);
+        }
     })
 }
 
-function ShowPlotDraw(result_html, filename) {
+function ShowPlotDraw(result_html: any, filename: any) {
     //返り値はhtmlの文章に使う
     let re = /.+\//
     filename = filename.replace(re, "")
@@ -118,27 +147,27 @@ function ShowPlotDraw(result_html, filename) {
             preserveFocus: true
         },
         {
-            enableScripts: true   
+            enableScripts: true
         }
     );
 
     panel.webview.html = result_html
 }
 
-function getCsvResultFromSimulation(csvFilePath) {
+function getCsvResultFromSimulation(csvFilePath: any) {
     return new Promise((resolve, reject) => {
         const stream = fs.createReadStream(csvFilePath)
             .pipe(csv.parse());
-        stream.on('error', (error) => reject(error));
-        const data = [];
-        stream.on('data', (chunk) => data.push(chunk));
+        stream.on('error', (error: any) => reject(error));
+        const data: any = [];
+        stream.on('data', (chunk: any) => data.push(chunk));
         stream.on('end', () => resolve(data));
-    })
+    });
 }
 
-const transpose = a => a[0].map((_, c) => a.map(r => r[c]));
+const transpose = (a: any) => a[0].map((_: any, c: any) => a.map((r: any) => r[c]));
 
-async function simulationResult2html(csvFilePath) {
+async function simulationResult2html(csvFilePath: any) {
     let htmlScript = " ";
     let divScript = " ";
     let unit;
@@ -165,7 +194,7 @@ async function simulationResult2html(csvFilePath) {
     const currentTitle = "Current [μA]"
     const voltageTitle = "Voltage [μV]"
     load_config()
-    xaxisLabelPrefixUnit = prefixUnit.substr(0, 1)
+    const xaxisLabelPrefixUnit = prefixUnit.substr(0, 1)
     const xaxis = {
         title: "Time [" + xaxisLabelPrefixUnit + "s]",
         showexponent: 'all',
@@ -175,7 +204,7 @@ async function simulationResult2html(csvFilePath) {
         family: "Times New Roman",
         size: downloadImageFontSize
     }
-    let layout = (unit) => {
+    let layout = (unit: any) => {
         return {
             xaxis: xaxis,
             yaxis: {
@@ -203,7 +232,9 @@ async function simulationResult2html(csvFilePath) {
         "editable": true
     }
     let resolve = await getCsvResultFromSimulation(csvFilePath);
+    // @ts-expect-error TS(2571): Object is of type 'unknown'.
     name = resolve[0];
+    // @ts-expect-error TS(2571): Object is of type 'unknown'.
     resolve.shift();
     name.shift();
     const transposed = transpose(resolve);
@@ -227,73 +258,93 @@ async function simulationResult2html(csvFilePath) {
         default:
             break;
     }
-    time = transposed[0].map(val => val * digitLength)
+    time = transposed[0].map((val: any) => val * digitLength)
     value = transposed
     value.shift();
+    // @ts-expect-error TS(2304): Cannot find name 'i'.
     for (i = 0; i < name.length; i++) {
+        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reP.test(name[i])) {
             pFlag = 1
         }
+        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reI.test(name[i])) {
             iFlag = 1
         }
+        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reV.test(name[i])) {
             vFlag = 1
         }
     }
+    // @ts-expect-error TS(2304): Cannot find name 'i'.
     for (i = 0; i < name.length; i++) {
         trace = {
+            // @ts-expect-error TS(2322): Type '{ x: any; y: any; name: any; type: string; }... Remove this comment to see the full error message
             x: time,
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
             y: value[i],
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
             name: name[i],
             type: 'scatter',
         };
         data.push(trace)
     }
 
+    // @ts-expect-error TS(2304): Cannot find name 'i'.
     for (i = 0; i < name.length; i++) {
+        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reP.test(name[i])) {
-            data[i].y = data[i].y.map((val) => {
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
+            data[i].y = data[i].y.map((val: any) => {
                 return val / Math.PI
             })
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
             phaseData.push(data[i])
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
         } else if (reI.test(name[i])) {
-            data[i].y = data[i].y.map((val) => {
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
+            data[i].y = data[i].y.map((val: any) => {
                 return val * 1e6
             })
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
             currentData.push(data[i])
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
         } else if (reV.test(name[i])) {
-            data[i].y = data[i].y.map((val) => {
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
+            data[i].y = data[i].y.map((val: any) => {
                 return val * 1e6
             })
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
             voltageData.push(data[i])
         }
     }
 
     if (pFlag > 0) {
-        const aryMax = function (a, b) { return Math.max(a, b) }
-        const aryMin = function (a, b) { return Math.min(a, b) }
-        for (i = 0; i < Object.keys(phaseData).length; i++) {
+        const aryMax = function (a: any, b: any) { return Math.max(a, b) }
+        const aryMin = function (a: any, b: any) { return Math.min(a, b) }
+        for (let i = 0; i < Object.keys(phaseData).length; i++) {
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
             phaseMaxes.push(phaseData[i].y.reduce(aryMax))
+            // @ts-expect-error TS(2304): Cannot find name 'i'.
             phaseMins.push(phaseData[i].y.reduce(aryMin))
         }
         const phaseMax = Math.trunc(phaseMaxes.reduce(aryMax))
         const phaseMin = Math.trunc(phaseMins.reduce(aryMin))
-        for (i = phaseMin; i <= phaseMax; i++) {
-            phaseLayout.yaxis.tickvals.push(i)
+        for (let i = phaseMin; i <= phaseMax; i++) {
+            phaseLayout.yaxis.tickvals.push(<never>i)
             let txt
             if (i == -1) {
-                txt = `$-\\pi$`
+                txt = "\u{1D70B}"
             } else if (i == 0) {
-                txt = `$0$`
+                txt = "0"
             }
             else if (i == 1) {
-                txt = `$\\pi$`
+                txt = "\u{1D70B}"
             } else {
-                txt = `$${String(i)}\\pi$`
+                txt = `${String(i)}\u{1D70B}`
             }
             txt = txt + '\t'
-            phaseLayout.yaxis.ticktext.push(txt)
+            phaseLayout.yaxis.ticktext.push(<never>txt)
         }
         phaseDataScript = `
         Plotly.newPlot(
@@ -372,7 +423,7 @@ async function simulationResult2html(csvFilePath) {
     return result_html
 }
 
-async function getFileNamesInFolder(folderPath) {
+async function getFileNamesInFolder(folderPath: any) {
     try {
         const filesInfo = [];
         const files = await vscode.workspace.findFiles(
@@ -386,7 +437,7 @@ async function getFileNamesInFolder(folderPath) {
             filesInfo.push({ fileName, filePath: file.fsPath, createdTime });
         }
         let sortedFiles = filesInfo.sort((a, b) => b.createdTime - a.createdTime)
-        let returnArray = []
+        let returnArray: any = []
         sortedFiles.forEach(file => {
             returnArray.push(file.filePath)
         })
@@ -397,18 +448,20 @@ async function getFileNamesInFolder(folderPath) {
     }
 }
 
-async function autoDeleteTmpFiles(filenames) {
-    let basenameArray = []
+async function autoDeleteTmpFiles(filenames: any) {
+    let basenameArray: any = []
     let noDuplicates = []
-    filenames.forEach(file => {
+    filenames.forEach((file: any) => {
         basenameArray.push(file.replace(/\..+/, ""))
     })
     noDuplicates = Array.from(new Set(basenameArray))
 
+    // @ts-expect-error TS(2304): Cannot find name 'i'.
     for (i = saveCount - 1; i < noDuplicates.length; i++) {
+        // @ts-expect-error TS(2304): Cannot find name 'i'.
         let regexSource = noDuplicates[i] + "\..+"
         let re = new RegExp(regexSource)
-        filenames.filter(function (value) { return value.match(re) }).forEach(fname => {
+        filenames.filter(function (value: any) { return value.match(re) }).forEach((fname: any) => {
             fs.unlinkSync(fname)
         })
 
