@@ -1,4 +1,6 @@
 # Change Log
+## [0.5.1]
+- package fix
 ## [0.5.0]
 - Fixed duplicate display of "Plot result" windows. When a window already exists, the existing window is updated instead of creating a new panel.
 ## [0.4.1]
