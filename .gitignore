@@ -1,6 +1,6 @@
 node_modules
 josim_resultCSV
+dist/
 .eslintrc
 .vscode
 .vsix
-dist
