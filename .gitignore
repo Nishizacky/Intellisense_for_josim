@@ -3,3 +3,4 @@ josim_resultCSV
 .eslintrc
 .vscode
 .vsix
+dist

@@ -28,26 +28,26 @@ export function jsmFormatter(document: vscode.TextDocument) {
   for (let i = 0; i < document.lineCount; i++) {
     let singleLine = document.lineAt(i).text
     let regex = /(^\.|\*|#|(\s+\n))/
-    if(regex.test(singleLine))continue;
+    if (regex.test(singleLine)) continue;
 
     stack = singleLine.split(re)
     for (let j = 0; j < stack.length - 1; j++) {
       newline += stack[j]
       if (stack[j].includes("(")) {
-        flag=1
+        flag = 1
       }
       if (stack[j].includes(")")) {
-        flag=0
+        flag = 0
       }
       if (flag == 0) {
         let repeatNum = 0
-        let subF = stack[j+1].length
-        if (j == 0) {subF += stack[j].length }
+        let subF = stack[j + 1].length
+        if (j == 0) { subF += stack[j].length }
         repeatNum = wordSpacing - subF
         while (repeatNum < 1) {
           repeatNum += space
         }
-        for(let h=0;h<repeatNum;h++){
+        for (let h = 0; h < repeatNum; h++) {
           newline += " "
         }
       }
@@ -61,4 +61,16 @@ export function jsmFormatter(document: vscode.TextDocument) {
     flag = 0
   }
   return edits
+}
+
+function blockSeparater(content: string): string[] {
+  return content.split("\n\n")
+}
+
+function formatOneBlock(block: string) {
+
+}
+
+function joinBlocks(blocks: string[]): string {
+  return blocks.join("\n\n")
 }

@@ -1,4 +1,6 @@
 # Change Log
+## [0.5.0]
+- Fixed duplicate display of "Plot result" windows. When a window already exists, the existing window is updated instead of creating a new panel.
 ## [0.4.1]
 - The syntax checker was not working correctly, so the feature has been disabled.
 - Improved a feature to cancel the simulator, allowing the simulation process to be killed by pid.
