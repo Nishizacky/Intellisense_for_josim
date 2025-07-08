@@ -9,3 +9,4 @@ esbuild.js
 test/
 fileicons/*.drawio
 dist/*map
+docs
