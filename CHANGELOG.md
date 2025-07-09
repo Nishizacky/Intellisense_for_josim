@@ -1,6 +1,9 @@
 # Change Log
+## [0.5.2]
+- animation fix
 ## [0.5.1]
 - package fix
+- Fixed several problems that occurred on Windows.
 ## [0.5.0]
 - Fixed duplicate display of "Plot result" windows. When a window already exists, the existing window is updated instead of creating a new panel.
 ## [0.4.1]
