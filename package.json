@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "icon": "fileicons/icon.png",
   "repository": {
     "type": "git",
@@ -64,19 +64,35 @@
             "f: 10^-15"
           ],
           "default": "p(10e-16)"
+        },
+        "preview.reuseWindow": {
+          "type": "string",
+          "enum": [
+            "reuse",
+            "create",
+            ""
+          ],
+          "default": "",
+          "description": "If true, update the existing preview window. If false, always create a new preview window."
         }
       }
     },
     "commands": [
       {
+        "command": "josim-cli.closeAllPlots",
+        "title": "Josim: Close all plots",
+        "icon": "$(panel-close)",
+        "when": "resourceLangId == josim"
+      },
+      {
         "command": "josim-cli.executeSimulationNoPlot",
-        "title": "Execute Simulation without a plot",
+        "title": "Josim: Execute Simulation without a plot",
         "icon": "$(run)",
         "when": "resourceLangId == josim"
       },
       {
         "command": "josim-cli.executeSimulation",
-        "title": "Execute Simulation",
+        "title": "Josim: Execute Simulation",
         "icon": "$(debug-start)",
         "when": "resourceLangId == josim"
       }
@@ -95,6 +111,11 @@
     ],
     "menus": {
       "editor/title": [
+        {
+          "command": "josim-cli.closeAllPlots",
+          "group": "navigation",
+          "when": "resourceLangId == josim"
+        },
         {
           "command": "josim-cli.executeSimulationNoPlot",
           "group": "navigation",

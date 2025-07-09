@@ -1,4 +1,7 @@
 # Change Log
+## [0.6.0]
+- Added a command to close all the plot window
+- Added an option whether create a plot window every time or reload a window
 ## [0.5.2]
 - animation fix
 ## [0.5.1]

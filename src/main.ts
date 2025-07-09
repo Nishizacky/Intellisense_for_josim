@@ -1,20 +1,21 @@
 import * as vscode from "vscode";
 import { superFinder } from "./superFinder"
-import { showSimulationResult, executeJosimCli } from "./simulation_exec"
+import { showSimulationResult, executeJosimCli, allWebviewPanels } from "./simulation_exec"
 import { checkSyntax } from "./syntaxChecker"
 import { jsmFormatter } from "./formatter"
 const JOSIM_MODE = { scheme: "file", language: "josim" };
 
-function getCurrentWord(document: vscode.TextDocument, position: vscode.Position):string {
+function getCurrentWord(document: vscode.TextDocument, position: vscode.Position): string {
   const wordRange = document.getWordRangeAtPosition(
     position,
     /[\.a-zA-Z0-9_]+/
   );
-  if(wordRange){
-  const currentWord = document
-    .lineAt(position.line)
-    .text.slice(wordRange.start.character, wordRange.end.character);
-  return currentWord;}
+  if (wordRange) {
+    const currentWord = document
+      .lineAt(position.line)
+      .text.slice(wordRange.start.character, wordRange.end.character);
+    return currentWord;
+  }
   throw console.log(`wordRange: ${wordRange}`);
 }
 class JOSIM_HoverProvider {
@@ -64,6 +65,18 @@ disposable = disposable.concat(
     }
   })
 );
+
+disposable = disposable.concat(
+  vscode.commands.registerCommand("josim-cli.closeAllPlots", () => {
+    if (Array.isArray(allWebviewPanels)) {
+      allWebviewPanels.forEach((pannel: vscode.WebviewPanel) => {
+        try {
+          pannel.dispose();
+        } catch (e) { }
+      })
+    }
+  })
+)
 
 function activate(context: any) {
   context.subscriptions.push(

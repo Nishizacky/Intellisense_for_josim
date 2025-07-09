@@ -14,6 +14,8 @@ function load_config() {
     saveCount = tmpFiles.get("saveCount")
     graphConfig = vscode.workspace.getConfiguration("graph")
     prefixUnit = graphConfig.get("timescale") as string
+    preview = vscode.workspace.getConfiguration("preview")
+    reuseWindow = vscode.workspace.getConfiguration("preview").get("reuseWindow")
 }
 let saveImage = vscode.workspace.getConfiguration('saveImage');
 let toImageFormat = saveImage.get('Format');
@@ -24,10 +26,13 @@ let tmpFiles = vscode.workspace.getConfiguration("tmpFiles")
 let saveCount = tmpFiles.get("saveCount")
 let graphConfig = vscode.workspace.getConfiguration("graph")
 let prefixUnit = graphConfig.get("timescale") as string
+let preview = vscode.workspace.getConfiguration("preview")
+let reuseWindow = preview.get("reuseWindow")
 
 let josimProcessPid = [] as number[]
 
 let currentWebviewPanel: vscode.WebviewPanel | undefined;
+export let allWebviewPanels: vscode.WebviewPanel[] = [];
 
 
 // ローディングアニメーション
@@ -57,6 +62,17 @@ const loadingHtml = `
 
 export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
     let fspath = uri.fsPath
+    if (preview.get("reuseWindow") == "") {
+        const selection = await vscode.window.showQuickPick(
+            ["Reuse existing window", "Always open new window"],
+            { placeHolder: "How do you want to show the preview window?" }
+        );
+        if (selection === "Reuse existing window") {
+            preview.update('reuseWindow', "reuse");
+        } else if (selection === "Always open new window") {
+            preview.update('reuseWindow', "create");
+        }
+    }
     if (fspath.includes(" ")) {
         let suggest = fspath.replaceAll(" ", "_")
         let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
@@ -166,7 +182,8 @@ function ShowPlotDraw(result_html: any, filename: any) {
     let name = path.parse(filename).name
     const panelTitle = `Plot-result: ${name}`
     // 既存のパネルがある場合はHTMLを更新
-    if (currentWebviewPanel != undefined) {
+    reuseWindow = preview.get("reuseWindow")
+    if (currentWebviewPanel != undefined && reuseWindow == "reuse") {
         setTimeout(() => {
             if (currentWebviewPanel != undefined) {
                 currentWebviewPanel.title = panelTitle;
@@ -174,7 +191,8 @@ function ShowPlotDraw(result_html: any, filename: any) {
                 currentWebviewPanel.reveal(undefined, true); // パネルをアクティブにする
             }
         }, 150)
-    } else {
+        allWebviewPanels.push(currentWebviewPanel);
+    } else if (reuseWindow == "create" || currentWebviewPanel == undefined) {
         // 新しいパネルを作成
         currentWebviewPanel = vscode.window.createWebviewPanel(
             "plotData",
@@ -189,12 +207,14 @@ function ShowPlotDraw(result_html: any, filename: any) {
         );
 
         currentWebviewPanel.webview.html = result_html;
-
-        // パネルが閉じられた時の処理
-        currentWebviewPanel.onDidDispose(() => {
-            currentWebviewPanel = undefined;
-        });
+        allWebviewPanels.push(currentWebviewPanel);
+    } else {
+        preview.update("reuseWindow", "")
     }
+
+    currentWebviewPanel.onDidDispose(() => {
+        currentWebviewPanel = undefined;
+    });
 }
 
 function getCsvResultFromSimulation(csvFilePath: any) {
