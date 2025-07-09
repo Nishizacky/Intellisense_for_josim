@@ -27,15 +27,46 @@ let prefixUnit = graphConfig.get("timescale") as string
 
 let josimProcessPid = [] as number[]
 
+let currentWebviewPanel: vscode.WebviewPanel | undefined;
+
+
+// ローディングアニメーション
+const loadingHtml = `
+<div id="loading-overlay" style="
+    width:100vw;height:100vh;
+    background:rgba(34,34,34,0.4);
+    position:fixed;top:0;left:0;z-index:9999;
+    display:flex;align-items:center;justify-content:center;
+">
+    <div style="
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+    "></div>
+</div>
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg);}
+        100% { transform: rotate(360deg);}
+    }
+</style>
+`;
 
 export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
         let suggest = fspath.replaceAll(" ", "_")
-        let message = "Josim file name should not have 'space', please change it.\nsuggested: " + suggest
+        let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
-        let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
+        if (currentWebviewPanel != undefined) {
+            currentWebviewPanel.webview.html += loadingHtml;
+            currentWebviewPanel.reveal(undefined, true);
+        }
+        let tmp = await getFileNamesInFolder(path.join(path.dirname(fspath), "josim_resultCSV"))
         autoDeleteTmpFiles(tmp)
         //マージンを取る時もこれより下の部分を書き換えれば対応できる。
         return vscode.window.withProgress({
@@ -48,7 +79,7 @@ export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
                     const pid = josimProcessPid.pop() as number;
                     try {
                         process.kill(pid);
-                        console.log(`Process ${pid} was terminated`);
+                        // console.log(`Process ${pid} was terminated`);
                     } catch (err) {
                         console.error(`Failed to kill process ${pid}:`, err);
                     }
@@ -72,11 +103,12 @@ export async function executeJosimCli(uri: vscode.Uri): Promise<void> {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
         let suggest = fspath.replaceAll(" ", "_")
-        let message = "Josim file name should not have 'space', please change it.\nsuggested: " + suggest
+        let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
-        let tmp = await getFileNamesInFolder(path.dirname(fspath) + "/josim_resultCSV")
-        autoDeleteTmpFiles(tmp)
+        let simulationResultPath = path.join(path.dirname(fspath), "josim_resultCSV");
+        let fileNames = await getFileNamesInFolder(simulationResultPath)
+        autoDeleteTmpFiles(fileNames)
         return vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: "",
@@ -92,7 +124,6 @@ export async function executeJosimCli(uri: vscode.Uri): Promise<void> {
                         console.error(`Failed to kill process ${pid}:`, err);
                     }
                 }
-
                 return
             });
             progress.report({ increment: 0 });
@@ -103,24 +134,23 @@ export async function executeJosimCli(uri: vscode.Uri): Promise<void> {
     }
 }
 async function simulation_exec(fspath: any) {
-    const re = /\/[^\/]+$/
-    let filePath = String(fspath).replace(re, "");
+    let filePath = path.parse(fspath).base;
     if (filePath.includes(' ')) {
         vscode.window.showInformationMessage("filename should not contain ' '.");
     }
-    filePath = filePath + "/josim_resultCSV"
+    filePath = path.join(path.parse(fspath).dir, "josim_resultCSV")
     fs.mkdir(filePath, (err: any) => {
         if (err) { throw "err: " + err }
     })
     const date = new Date();
     const timestump = String(date.getFullYear()) + String(date.getMonth() + 1) + String(date.getDate()) + "_" + String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds())
-    const outputFilePath = filePath + '/jsm_out' + "_" + timestump + '.csv';
+    const outputFilePath = path.join(filePath, 'jsm_out' + "_" + timestump + '.csv');
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
         const child = exec(string_for_exec, (err, stdout, stderr) => {
             if (err) {
                 if (stderr.includes("Terminated")) {
-                    reject(vscode.window.showInformationMessage("Simulation ",stderr));
+                    reject(vscode.window.showInformationMessage("Simulation ", stderr));
                 } else {
                     reject(vscode.window.showErrorMessage(stderr));
                 }
@@ -132,26 +162,39 @@ async function simulation_exec(fspath: any) {
         }
     })
 }
-
 function ShowPlotDraw(result_html: any, filename: any) {
-    //返り値はhtmlの文章に使う
-    let re = /.+\//
-    filename = filename.replace(re, "")
-    re = /\..+/
-    filename = filename.replace(re, "")
-    let panel = vscode.window.createWebviewPanel(
-        "plotData",
-        `Plot-result: ${filename}`,
-        {
-            viewColumn: vscode.ViewColumn.Two,
-            preserveFocus: true
-        },
-        {
-            enableScripts: true
-        }
-    );
+    let name = path.parse(filename).name
+    const panelTitle = `Plot-result: ${name}`
+    // 既存のパネルがある場合はHTMLを更新
+    if (currentWebviewPanel != undefined) {
+        setTimeout(() => {
+            if (currentWebviewPanel != undefined) {
+                currentWebviewPanel.title = panelTitle;
+                currentWebviewPanel.webview.html = result_html;
+                currentWebviewPanel.reveal(undefined, true); // パネルをアクティブにする
+            }
+        }, 150)
+    } else {
+        // 新しいパネルを作成
+        currentWebviewPanel = vscode.window.createWebviewPanel(
+            "plotData",
+            panelTitle,
+            {
+                viewColumn: vscode.ViewColumn.Two,
+                preserveFocus: true
+            },
+            {
+                enableScripts: true
+            }
+        );
 
-    panel.webview.html = result_html
+        currentWebviewPanel.webview.html = result_html;
+
+        // パネルが閉じられた時の処理
+        currentWebviewPanel.onDidDispose(() => {
+            currentWebviewPanel = undefined;
+        });
+    }
 }
 
 function getCsvResultFromSimulation(csvFilePath: any) {
@@ -261,60 +304,47 @@ async function simulationResult2html(csvFilePath: any) {
     time = transposed[0].map((val: any) => val * digitLength)
     value = transposed
     value.shift();
-    // @ts-expect-error TS(2304): Cannot find name 'i'.
+    let i = 0
     for (i = 0; i < name.length; i++) {
-        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reP.test(name[i])) {
             pFlag = 1
         }
-        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reI.test(name[i])) {
             iFlag = 1
         }
-        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reV.test(name[i])) {
             vFlag = 1
         }
     }
-    // @ts-expect-error TS(2304): Cannot find name 'i'.
     for (i = 0; i < name.length; i++) {
         trace = {
             // @ts-expect-error TS(2322): Type '{ x: any; y: any; name: any; type: string; }... Remove this comment to see the full error message
             x: time,
-            // @ts-expect-error TS(2304): Cannot find name 'i'.
             y: value[i],
-            // @ts-expect-error TS(2304): Cannot find name 'i'.
             name: name[i],
             type: 'scatter',
         };
         data.push(trace)
     }
 
-    // @ts-expect-error TS(2304): Cannot find name 'i'.
     for (i = 0; i < name.length; i++) {
-        // @ts-expect-error TS(2304): Cannot find name 'i'.
         if (reP.test(name[i])) {
             // @ts-expect-error TS(2304): Cannot find name 'i'.
             data[i].y = data[i].y.map((val: any) => {
                 return val / Math.PI
             })
-            // @ts-expect-error TS(2304): Cannot find name 'i'.
             phaseData.push(data[i])
-            // @ts-expect-error TS(2304): Cannot find name 'i'.
         } else if (reI.test(name[i])) {
             // @ts-expect-error TS(2304): Cannot find name 'i'.
             data[i].y = data[i].y.map((val: any) => {
-                return val * 1e6
+                return val * digitLength
             })
-            // @ts-expect-error TS(2304): Cannot find name 'i'.
             currentData.push(data[i])
-            // @ts-expect-error TS(2304): Cannot find name 'i'.
         } else if (reV.test(name[i])) {
             // @ts-expect-error TS(2304): Cannot find name 'i'.
             data[i].y = data[i].y.map((val: any) => {
-                return val * 1e6
+                return val * digitLength
             })
-            // @ts-expect-error TS(2304): Cannot find name 'i'.
             voltageData.push(data[i])
         }
     }
@@ -456,9 +486,7 @@ async function autoDeleteTmpFiles(filenames: any) {
     })
     noDuplicates = Array.from(new Set(basenameArray))
 
-    // @ts-expect-error TS(2304): Cannot find name 'i'.
-    for (i = saveCount - 1; i < noDuplicates.length; i++) {
-        // @ts-expect-error TS(2304): Cannot find name 'i'.
+    for (let i = Number(saveCount) - 1; i < noDuplicates.length; i++) {
         let regexSource = noDuplicates[i] + "\..+"
         let re = new RegExp(regexSource)
         filenames.filter(function (value: any) { return value.match(re) }).forEach((fname: any) => {
@@ -466,5 +494,5 @@ async function autoDeleteTmpFiles(filenames: any) {
         })
 
     }
-    console.log(noDuplicates);
+    // console.log(noDuplicates);
 }
