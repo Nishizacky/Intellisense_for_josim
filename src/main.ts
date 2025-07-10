@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { superFinder } from "./superFinder"
-import { showSimulationResult, executeJosimCli, allWebviewPanels } from "./simulation_exec"
+import { showSimulationResult, allWebviewPanels } from "./simulation_exec"
 import { checkSyntax } from "./syntaxChecker"
 import { jsmFormatter } from "./formatter"
 const JOSIM_MODE = { scheme: "file", language: "josim" };
@@ -42,7 +42,7 @@ disposable = disposable.concat(
     if (activeEditor) {
       activeEditor.document.save();
       const uri = activeEditor.document.uri;
-      showSimulationResult(uri)
+      showSimulationResult(uri, true)
     }
   })
 );
@@ -61,7 +61,7 @@ disposable = disposable.concat(
     if (activeTextEditor) {
       activeTextEditor.document.save();
       const uri = activeTextEditor.document.uri;
-      executeJosimCli(uri)
+      showSimulationResult(uri, false)
     }
   })
 );

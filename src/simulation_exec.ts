@@ -60,9 +60,9 @@ const loadingHtml = `
 </style>
 `;
 
-export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
+export async function showSimulationResult(uri: vscode.Uri, previewFlag: boolean): Promise<void> {
     let fspath = uri.fsPath
-    if (preview.get("reuseWindow") == "") {
+    if (preview.get("reuseWindow") == "" && previewFlag) {
         const selection = await vscode.window.showQuickPick(
             ["Reuse existing window", "Always open new window"],
             { placeHolder: "How do you want to show the preview window?" }
@@ -78,7 +78,7 @@ export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
         let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
-        if (currentWebviewPanel != undefined) {
+        if (currentWebviewPanel != undefined && previewFlag) {
             currentWebviewPanel.webview.html += loadingHtml;
             currentWebviewPanel.reveal(undefined, true);
         }
@@ -93,9 +93,15 @@ export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
             token.onCancellationRequested(() => {
                 if (josimProcessPid.length > 0) {
                     const pid = josimProcessPid.pop() as number;
+                    console.log("pid = ", pid);
                     try {
                         process.kill(pid);
-                        // console.log(`Process ${pid} was terminated`);
+                        console.log(`Process ${pid} was terminated`);
+                        if (currentWebviewPanel != undefined && previewFlag) {
+                            currentWebviewPanel.webview.html = currentWebviewPanel.webview.html.replace(loadingHtml, "");
+                            currentWebviewPanel.reveal(undefined, true)
+                        }
+
                     } catch (err) {
                         console.error(`Failed to kill process ${pid}:`, err);
                     }
@@ -107,48 +113,18 @@ export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
             let resultFilePath = await simulation_exec(fspath);
             progress.report({ increment: 70, message: "Exporting output file" });
             let result_html = await simulationResult2html(resultFilePath);
-            progress.report({ increment: 80, message: "Loading HTML" });
-            ShowPlotDraw(result_html, fspath)
+            if (previewFlag) {
+                progress.report({ increment: 80, message: "Loading HTML" });
+                ShowPlotDraw(result_html, fspath)
+            } else {
+                progress.report({ increment: 100, message: "Simulation done!" });
+            }
         });
     }
 
 
 }
 
-export async function executeJosimCli(uri: vscode.Uri): Promise<void> {
-    let fspath = uri.fsPath
-    if (fspath.includes(" ")) {
-        let suggest = fspath.replaceAll(" ", "_")
-        let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
-        vscode.window.showErrorMessage(message)
-    } else {
-        let simulationResultPath = path.join(path.dirname(fspath), "josim_resultCSV");
-        let fileNames = await getFileNamesInFolder(simulationResultPath)
-        autoDeleteTmpFiles(fileNames)
-        return vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: "",
-            cancellable: true
-        }, async (progress: any, token: any) => {
-            token.onCancellationRequested(() => {
-                if (josimProcessPid.length > 0) {
-                    const pid = josimProcessPid.pop() as number;
-                    try {
-                        process.kill(pid);
-                        console.log(`Process ${pid} was terminated`);
-                    } catch (err) {
-                        console.error(`Failed to kill process ${pid}:`, err);
-                    }
-                }
-                return
-            });
-            progress.report({ increment: 0 });
-            progress.report({ increment: 10, message: "Simulating......" });
-            await simulation_exec(fspath);
-            progress.report({ increment: 100, message: "Simulation done!" });
-        });
-    }
-}
 async function simulation_exec(fspath: any) {
     let filePath = path.parse(fspath).base;
     if (filePath.includes(' ')) {
