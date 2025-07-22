@@ -1,4 +1,6 @@
 # Change Log
+## [0.6.1]
+- Changed the notation of the y-axis label
 ## [0.6.0]
 - Added a command to close all the plot window
 - Added an option whether create a plot window every time or reload a window

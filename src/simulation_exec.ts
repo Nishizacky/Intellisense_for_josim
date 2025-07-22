@@ -230,14 +230,12 @@ async function simulationResult2html(csvFilePath: any) {
     const reI = /^I/;
     const reV = /^V/;
     const phaseTitle = "Phase [rad]"
-    const currentTitle = "Current [μA]"
-    const voltageTitle = "Voltage [μV]"
+    const currentTitle = "Current [A]"
+    const voltageTitle = "Voltage [V]"
     load_config()
     const xaxisLabelPrefixUnit = prefixUnit.substr(0, 1)
     const xaxis = {
         title: "Time [" + xaxisLabelPrefixUnit + "s]",
-        showexponent: 'all',
-        exponentformat: 'e'
     }
     const font = {
         family: "Times New Roman",
@@ -249,6 +247,7 @@ async function simulationResult2html(csvFilePath: any) {
             yaxis: {
                 title: unit,
             },
+            tickformat: "e",
             font: font
         }
     }
@@ -333,13 +332,13 @@ async function simulationResult2html(csvFilePath: any) {
         } else if (reI.test(name[i])) {
             // @ts-expect-error TS(2304): Cannot find name 'i'.
             data[i].y = data[i].y.map((val: any) => {
-                return val * digitLength
+                return val
             })
             currentData.push(data[i])
         } else if (reV.test(name[i])) {
             // @ts-expect-error TS(2304): Cannot find name 'i'.
             data[i].y = data[i].y.map((val: any) => {
-                return val * digitLength
+                return val
             })
             voltageData.push(data[i])
         }
