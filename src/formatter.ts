@@ -2,12 +2,12 @@ import vscode from "vscode"
 
 export function jsmFormatter(document: vscode.TextDocument) {
   const re = /\s+/g;
-  const space_config = vscode.workspace.getConfiguration('formatter');
-  const space_amount = space_config.get<number>("wordSpacing", 2);
+  const spaceConfig = vscode.workspace.getConfiguration('formatter');
+  const spaceAmount = spaceConfig.get<number>("wordSpacing", 2);
   const fullText = document.getText();
   // .end以降は一切干渉しない
   const linesAll = fullText.split(/\n/);
-  let endIndex = linesAll.findIndex(line => /^\.end(\s*|$)/.test(line.trim()));
+  let endIndex = linesAll.findIndex(line => /\.end(\s|$)/.test(line.trim()));
   let beforeEndText = "";
   let afterEndText = "";
   if (endIndex === -1) {
@@ -16,9 +16,12 @@ export function jsmFormatter(document: vscode.TextDocument) {
     beforeEndText = linesAll.slice(0, endIndex).join("\n");
     afterEndText = linesAll.slice(endIndex).join("\n");
   }
+  console.log(beforeEndText);
+  console.log(afterEndText);
+
 
   // 2回以上の改行でブロック分割（.endより前のみ）
-  const blocks = beforeEndText.split(/\n{2,}/);
+  const blocks = beforeEndText.split(/\n\n/);
   let formattedBlocks: string[] = [];
 
   for (let block of blocks) {
@@ -61,7 +64,7 @@ export function jsmFormatter(document: vscode.TextDocument) {
           if (line.words[j].includes(")") && parflag > 0) { parflag -= 1; }
           let spacesToAdd = 0;
           if (parflag < 1) {
-            spacesToAdd += columnWidths[j] - line.words[j].length + space_amount;
+            spacesToAdd += columnWidths[j] - line.words[j].length + spaceAmount;
           } else {
             spacesToAdd += 1;
           }

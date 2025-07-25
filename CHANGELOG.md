@@ -1,8 +1,10 @@
 # Change Log
+## [0.6.5]
+- fixed issues in formatter
 ## [0.6.4]
-- fixed another issue in formatter
+- fixed issues in formatter
 ## [0.6.3]
-- fixed a issue in formatter
+- fixed issues in formatter
 ## [0.6.2]
 - Changed the formmater rule
 ## [0.6.1]
