@@ -1,4 +1,6 @@
 # Change Log
+## [0.6.2]
+- Changed the formmater rule
 ## [0.6.1]
 - Changed the notation of the y-axis label
 ## [0.6.0]
