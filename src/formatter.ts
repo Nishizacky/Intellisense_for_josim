@@ -5,8 +5,20 @@ export function jsmFormatter(document: vscode.TextDocument) {
   const space_config = vscode.workspace.getConfiguration('formatter');
   const space_amount = space_config.get<number>("wordSpacing", 2);
   const fullText = document.getText();
-  // 2回以上の改行でブロック分割
-  const blocks = fullText.split(/\n{2,}/);
+  // .end以降は一切干渉しない
+  const linesAll = fullText.split(/\n/);
+  let endIndex = linesAll.findIndex(line => line.trim().startsWith('.end'));
+  let beforeEndText = "";
+  let afterEndText = "";
+  if (endIndex === -1) {
+    beforeEndText = fullText;
+  } else {
+    beforeEndText = linesAll.slice(0, endIndex).join("\n");
+    afterEndText = linesAll.slice(endIndex).join("\n");
+  }
+
+  // 2回以上の改行でブロック分割（.endより前のみ）
+  const blocks = beforeEndText.split(/\n{2,}/);
   let formattedBlocks: string[] = [];
 
   for (let block of blocks) {
@@ -42,26 +54,32 @@ export function jsmFormatter(document: vscode.TextDocument) {
       }
       let newline = "";
       let parflag = 0;
-      for (let j = 0; j < line.words.length - 1; j++) {
-        newline += line.words[j];
-        if (line.words[j].includes("(")) { parflag += 1; }
-        if (line.words[j].includes(")") && parflag > 0) { parflag -= 1; }
-        let spacesToAdd = 0;
-        if (parflag < 1) {
-          spacesToAdd += columnWidths[j] - line.words[j].length + space_amount;
-        } else {
-          spacesToAdd += 1;
+      if (line.words.length > 0) {
+        for (let j = 0; j < line.words.length - 1; j++) {
+          newline += line.words[j];
+          if (line.words[j].includes("(")) { parflag += 1; }
+          if (line.words[j].includes(")") && parflag > 0) { parflag -= 1; }
+          let spacesToAdd = 0;
+          if (parflag < 1) {
+            spacesToAdd += columnWidths[j] - line.words[j].length + space_amount;
+          } else {
+            spacesToAdd += 1;
+          }
+          newline += " ".repeat(spacesToAdd);
         }
-        newline += " ".repeat(spacesToAdd);
+        newline += line.words[line.words.length - 1];
       }
-      newline += line.words[line.words.length - 1];
       formattedLines.push(newline);
     }
     formattedBlocks.push(formattedLines.join("\n"));
   }
 
   // フォーマット済みブロックを2回以上の改行で結合
-  const formattedText = formattedBlocks.join("\n\n");
+  let formattedText = formattedBlocks.join("\n\n");
+  // .end以降はそのまま結合
+  if (afterEndText.length > 0) {
+    formattedText += "\n" + afterEndText;
+  }
 
   // 全体を1つのTextEditで置換
   return [vscode.TextEdit.replace(
