@@ -7,7 +7,7 @@ export function jsmFormatter(document: vscode.TextDocument) {
   const fullText = document.getText();
   // .end以降は一切干渉しない
   const linesAll = fullText.split(/\n/);
-  let endIndex = linesAll.findIndex(line => line.trim().startsWith('.end'));
+  let endIndex = linesAll.findIndex(line => /^\.end(\s*|$)/.test(line.trim()));
   let beforeEndText = "";
   let afterEndText = "";
   if (endIndex === -1) {
