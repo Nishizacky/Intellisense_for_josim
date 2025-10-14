@@ -29,32 +29,6 @@ let josimProcessPid = [] as number[]
 
 let currentWebviewPanel: vscode.WebviewPanel | undefined;
 
-
-// ローディングアニメーション
-const loadingHtml = `
-<div id="loading-overlay" style="
-    width:100vw;height:100vh;
-    background:rgba(34,34,34,0.4);
-    position:fixed;top:0;left:0;z-index:9999;
-    display:flex;align-items:center;justify-content:center;
-">
-    <div style="
-        border: 8px solid #f3f3f3;
-        border-top: 8px solid #3498db;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
-    "></div>
-</div>
-<style>
-    @keyframes spin {
-        0% { transform: rotate(0deg);}
-        100% { transform: rotate(360deg);}
-    }
-</style>
-`;
-
 export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
     let fspath = uri.fsPath
     if (fspath.includes(" ")) {
@@ -62,10 +36,6 @@ export async function showSimulationResult(uri: vscode.Uri): Promise<void> {
         let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
-        if (currentWebviewPanel != undefined) {
-            currentWebviewPanel.webview.html += loadingHtml;
-            currentWebviewPanel.reveal(undefined, true);
-        }
         let tmp = await getFileNamesInFolder(path.join(path.dirname(fspath), "josim_resultCSV"))
         autoDeleteTmpFiles(tmp)
         //マージンを取る時もこれより下の部分を書き換えれば対応できる。

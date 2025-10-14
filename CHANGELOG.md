@@ -1,4 +1,6 @@
 # Change Log
+## [0.5.3]
+- Rmoved animation
 ## [0.5.2]
 - animation fix
 ## [0.5.1]
