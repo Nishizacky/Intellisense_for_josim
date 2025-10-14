@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "icon": "fileicons/icon.png",
   "repository": {
     "type": "git",
@@ -69,10 +69,9 @@
           "type": "string",
           "enum": [
             "reuse",
-            "create",
-            ""
+            "create"
           ],
-          "default": "",
+          "default": "create",
           "description": "If true, update the existing preview window. If false, always create a new preview window."
         }
       }

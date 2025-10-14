@@ -1,4 +1,7 @@
 # Change Log
+## [0.6.6]
+- Removed loading animation
+- Changed default setting of whether create a new window or resuse an existing window to the former
 ## [0.6.5]
 - fixed issues in formatter
 ## [0.6.4]

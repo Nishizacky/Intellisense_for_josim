@@ -35,53 +35,14 @@ let currentWebviewPanel: vscode.WebviewPanel | undefined;
 export let allWebviewPanels: vscode.WebviewPanel[] = [];
 
 
-// ローディングアニメーション
-const loadingHtml = `
-<div id="loading-overlay" style="
-    width:100vw;height:100vh;
-    background:rgba(34,34,34,0.4);
-    position:fixed;top:0;left:0;z-index:9999;
-    display:flex;align-items:center;justify-content:center;
-">
-    <div style="
-        border: 8px solid #f3f3f3;
-        border-top: 8px solid #3498db;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
-    "></div>
-</div>
-<style>
-    @keyframes spin {
-        0% { transform: rotate(0deg);}
-        100% { transform: rotate(360deg);}
-    }
-</style>
-`;
 
 export async function showSimulationResult(uri: vscode.Uri, previewFlag: boolean): Promise<void> {
     let fspath = uri.fsPath
-    if (preview.get("reuseWindow") == "" && previewFlag) {
-        const selection = await vscode.window.showQuickPick(
-            ["Reuse existing window", "Always open new window"],
-            { placeHolder: "How do you want to show the preview window?" }
-        );
-        if (selection === "Reuse existing window") {
-            preview.update('reuseWindow', "reuse");
-        } else if (selection === "Always open new window") {
-            preview.update('reuseWindow', "create");
-        }
-    }
     if (fspath.includes(" ")) {
         let suggest = fspath.replaceAll(" ", "_")
         let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
-        if (currentWebviewPanel != undefined && previewFlag) {
-            currentWebviewPanel.webview.html += loadingHtml;
-            currentWebviewPanel.reveal(undefined, true);
-        }
         let tmp = await getFileNamesInFolder(path.join(path.dirname(fspath), "josim_resultCSV"))
         autoDeleteTmpFiles(tmp)
         //マージンを取る時もこれより下の部分を書き換えれば対応できる。
@@ -97,11 +58,6 @@ export async function showSimulationResult(uri: vscode.Uri, previewFlag: boolean
                     try {
                         process.kill(pid);
                         console.log(`Process ${pid} was terminated`);
-                        if (currentWebviewPanel != undefined && previewFlag) {
-                            currentWebviewPanel.webview.html = currentWebviewPanel.webview.html.replace(loadingHtml, "");
-                            currentWebviewPanel.reveal(undefined, true)
-                        }
-
                     } catch (err) {
                         console.error(`Failed to kill process ${pid}:`, err);
                     }
