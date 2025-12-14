@@ -340,27 +340,27 @@ async function simulationResult2html(csvFilePath: any) {
             txt = txt + '\t'
             phaseLayout.yaxis.ticktext.push(<never>txt)
         }
-        phaseDataScript = `var phaseData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("P")){phaseData.push(data[i])}} Plotly.newPlot("phasePlot",phaseData,${JSON.stringify(phaseLayout)},${JSON.stringify(config)})`;
+        phaseDataScript = `var phaseData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("P")){phaseData.push(data[i])}} Plotly.newPlot("phasePlot",phaseData,${JSON.stringify(phaseLayout)},${JSON.stringify(config)});`;
         htmlScript += phaseDataScript
         divScript += `<div id="phasePlot"></div><button onclick="saveAsImage('phasePlot')">↑Save as ${toImageFormat}</button>`
     }
     if (iFlag > 0) {
         unit = currentTitle
-        currentDataScript = `var currentData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("I")){currentData.push(data[i])}} Plotly.newPlot("currentPlot",currentData,${JSON.stringify(layout(unit))},${JSON.stringify(config)})`;
+        currentDataScript = `var currentData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("I")){currentData.push(data[i])}} Plotly.newPlot("currentPlot",currentData,${JSON.stringify(layout(unit))},${JSON.stringify(config)});`;
         htmlScript += currentDataScript
         divScript += ` <div id="currentPlot"></div><button onclick="saveAsImage('currentPlot')">↑Save as ${toImageFormat}</button>`
     }
     if (vFlag > 0) {
         unit = voltageTitle
-        vonltageDataScript = `var voltageData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("V")){voltageData.push(data[i])}} Plotly.newPlot("voltagePlot",voltageData,${JSON.stringify(layout(unit))},${JSON.stringify(config)})`;
+        vonltageDataScript = `var voltageData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("V")){voltageData.push(data[i])}} Plotly.newPlot("voltagePlot",voltageData,${JSON.stringify(layout(unit))},${JSON.stringify(config)});`;
         htmlScript += vonltageDataScript
         divScript += `<div id="voltagePlot"></div><button onclick="saveAsImage('voltagePlot')">↑Save as ${toImageFormat}</button>`
     }
     const compressedData = zstd.compressSync({ input: JSON.stringify(data) });
     const compressedData64 = compressedData.toString('base64');
-    let selectData = `Plotly.newPlot("mixPlot",${JSON.stringify([])},${JSON.stringify(layout(unit))},${JSON.stringify(config)})`;
+    let selectData = `Plotly.newPlot("mixPlot",${JSON.stringify([])},${JSON.stringify(layout(unit))},${JSON.stringify(config)});`;
     htmlScript += selectData;
-    let mixDataScript = `function rewritePlot(){var xname=document.getElementById("xaxisSelect").value;var yname=document.getElementById("yaxisSelect").value;var xData,yData;for(var i=0;i<data.length;i++){if(data[i].name==xname){xData=data[i].y} if(data[i].name==yname){yData=data[i].y}} var trace={x:xData,y:yData,type:'scatter'};var layout={xaxis:{title:xname},yaxis:{title:yname}};Plotly.newPlot('mixPlot',[trace],layout,${JSON.stringify(config)})}`;
+    let mixDataScript = `function rewritePlot(){var xname=document.getElementById("xaxisSelect").value;var yname=document.getElementById("yaxisSelect").value;var xData,yData;for(var i=0;i<data.length;i++){if(data[i].name==xname){xData=data[i].y} if(data[i].name==yname){yData=data[i].y}} var trace={x:xData,y:yData,type:'scatter'};var layout={xaxis:{title:xname},yaxis:{title:yname}};Plotly.newPlot('mixPlot',[trace],layout,${JSON.stringify(config)})};`;
     htmlScript += mixDataScript;
     let select = [];
     select.push(`<option value="" selected disabled hidden>Select trace</option>`);
@@ -375,7 +375,7 @@ async function simulationResult2html(csvFilePath: any) {
         div: divScript
     }
     const saveImageConfig = `{format: '${toImageFormat}' , width: ${downloadImageWidth}, height: ${downloadImageHeight}}`
-    const result_html = `<!doctypehtml><script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script><script src=https://cdn.plot.ly/plotly-latest.min.js></script><script src=https://unpkg.com/fzstd></script><script src=https://cdn.jsdelivr.net/npm/fzstd/umd/index.js></script>${showdata.div}<script>const compressedData64='${compressedData64}';const binStr=atob(compressedData64);const charCodes=new Uint8Array(binStr.length);for(let i=0;i<binStr.length;i++)charCodes[i]=binStr.charCodeAt(i);const decompressed=new TextDecoder().decode(fzstd.decompress(charCodes));const data=JSON.parse(decompressed);${showdata.script} function saveAsImage(id){var plotlyGraph=document.getElementById(id);Plotly.toImage(plotlyGraph,${saveImageConfig}).then(function(url){var a=document.createElement('a');a.href=url;a.download='plot.${toImageFormat}';a.click()})}</script>`;
+    const result_html = `<!doctype html><script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script><script src=https://cdn.plot.ly/plotly-latest.min.js></script><script src=https://unpkg.com/fzstd></script><script src=https://cdn.jsdelivr.net/npm/fzstd/umd/index.js></script>${showdata.div}<script>const compressedData64='${compressedData64}';const binStr=atob(compressedData64);const charCodes=new Uint8Array(binStr.length);for(let i=0;i<binStr.length;i++)charCodes[i]=binStr.charCodeAt(i);const decompressed=new TextDecoder().decode(fzstd.decompress(charCodes));const data=JSON.parse(decompressed);${showdata.script} function saveAsImage(id){var plotlyGraph=document.getElementById(id);Plotly.toImage(plotlyGraph,${saveImageConfig}).then(function(url){var a=document.createElement('a');a.href=url;a.download='plot.${toImageFormat}';a.click()})}</script>`;
     const outputHtmlPath = csvFilePath.replace(".csv", ".html");
     fs.writeFileSync(outputHtmlPath, result_html.replace("<!DOCTYPE html>\n", ""));
     return result_html
