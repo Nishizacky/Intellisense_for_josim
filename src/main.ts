@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { superFinder } from "./superFinder"
 import { showSimulationResult, allWebviewPanels } from "./simulation_exec"
-import { checkSyntax } from "./syntaxChecker"
 import { jsmFormatter } from "./formatter"
 const JOSIM_MODE = { scheme: "file", language: "josim" };
 

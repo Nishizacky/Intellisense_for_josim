@@ -4,6 +4,10 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from "path";
 import * as csv from '@fast-csv/parse';
+import * as util from './util';
+import * as zstd from 'zstd.ts';
+
+
 function load_config() {
     saveImage = vscode.workspace.getConfiguration('saveImage');
     toImageFormat = saveImage.get('Format');
@@ -30,8 +34,8 @@ let preview = vscode.workspace.getConfiguration("preview")
 let reuseWindow = preview.get("reuseWindow")
 
 let josimProcessPid = [] as number[]
-
 let currentWebviewPanel: vscode.WebviewPanel | undefined;
+
 export let allWebviewPanels: vscode.WebviewPanel[] = [];
 
 
@@ -43,8 +47,8 @@ export async function showSimulationResult(uri: vscode.Uri, previewFlag: boolean
         let message = "Josim file name should not have 'space', please rename it.\nsuggested: " + suggest
         vscode.window.showErrorMessage(message)
     } else {
-        let tmp = await getFileNamesInFolder(path.join(path.dirname(fspath), "josim_resultCSV"))
-        autoDeleteTmpFiles(tmp)
+        let tmp = await util.getFileNamesInFolder(path.join(path.dirname(fspath), "josim_resultCSV"))
+        util.autoDeleteTmpFiles(tmp)
         //マージンを取る時もこれより下の部分を書き換えれば対応できる。
         return vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -91,7 +95,13 @@ async function simulation_exec(fspath: any) {
         if (err) { throw "err: " + err }
     })
     const date = new Date();
-    const timestump = String(date.getFullYear()) + String(date.getMonth() + 1) + String(date.getDate()) + "_" + String(date.getHours()) + String(date.getMinutes()) + String(date.getSeconds())
+    const y = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const minu = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    const timestump = `${y}${mm}${dd}_${hh}${minu}${ss}`
     const outputFilePath = path.join(filePath, 'jsm_out' + "_" + timestump + '.csv');
     const string_for_exec = 'josim-cli ' + fspath + ' -o ' + outputFilePath + ' -m'
     return new Promise((resolve, reject) => {
@@ -104,12 +114,14 @@ async function simulation_exec(fspath: any) {
                 }
             }
             resolve(outputFilePath)
+            fs.writeFileSync(outputFilePath.replace(".csv", ".jsm"), fs.readFileSync(fspath, 'utf-8'));
         });
         if (child.pid !== undefined) {
             josimProcessPid.push(child.pid + 1);
         }
     })
 }
+
 function ShowPlotDraw(result_html: any, filename: any) {
     let name = path.parse(filename).name
     const panelTitle = `Plot-result: ${name}`
@@ -161,6 +173,11 @@ function getCsvResultFromSimulation(csvFilePath: any) {
 }
 
 const transpose = (a: any) => a[0].map((_: any, c: any) => a.map((r: any) => r[c]));
+const config = {
+    "responsive": true,
+    'modeBarButtonsToRemove': ['toImage'],
+    "editable": true
+};
 
 async function simulationResult2html(csvFilePath: any) {
     let htmlScript = " ";
@@ -220,11 +237,7 @@ async function simulationResult2html(csvFilePath: any) {
     }
 
 
-    const config = {
-        "responsive": true,
-        'modeBarButtonsToRemove': ['toImage'],
-        "editable": true
-    }
+
     let resolve = await getCsvResultFromSimulation(csvFilePath);
     // @ts-expect-error TS(2571): Object is of type 'unknown'.
     name = resolve[0];
@@ -327,123 +340,44 @@ async function simulationResult2html(csvFilePath: any) {
             txt = txt + '\t'
             phaseLayout.yaxis.ticktext.push(<never>txt)
         }
-        phaseDataScript = `
-        Plotly.newPlot(
-            "phasePlot",
-            ${JSON.stringify(phaseData)},
-            ${JSON.stringify(phaseLayout)},
-            ${JSON.stringify(config)}
-        )
-        `;
+        phaseDataScript = `var phaseData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("P")){phaseData.push(data[i])}} Plotly.newPlot("phasePlot",phaseData,${JSON.stringify(phaseLayout)},${JSON.stringify(config)})`;
         htmlScript += phaseDataScript
-        divScript += `<div id="phasePlot"></div>
-        <button onclick="saveAsImage('phasePlot')">↑Save as ${toImageFormat}</button>
-        `
+        divScript += `<div id="phasePlot"></div><button onclick="saveAsImage('phasePlot')">↑Save as ${toImageFormat}</button>`
     }
     if (iFlag > 0) {
         unit = currentTitle
-        currentDataScript = `
-        Plotly.newPlot(
-            "currentPlot",
-            ${JSON.stringify(currentData)},
-            ${JSON.stringify(layout(unit))},
-            ${JSON.stringify(config)}
-        )
-        `;
+        currentDataScript = `var currentData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("I")){currentData.push(data[i])}} Plotly.newPlot("currentPlot",currentData,${JSON.stringify(layout(unit))},${JSON.stringify(config)})`;
         htmlScript += currentDataScript
-        divScript += ` <div id="currentPlot"></div>
-        <button onclick="saveAsImage('currentPlot')">↑Save as ${toImageFormat}</button>
-        `
+        divScript += ` <div id="currentPlot"></div><button onclick="saveAsImage('currentPlot')">↑Save as ${toImageFormat}</button>`
     }
     if (vFlag > 0) {
         unit = voltageTitle
-        vonltageDataScript = `
-        Plotly.newPlot(
-            "voltagePlot",
-            ${JSON.stringify(voltageData)},
-            ${JSON.stringify(layout(unit))},
-            ${JSON.stringify(config)}
-        )
-        `;
+        vonltageDataScript = `var voltageData=[];for(let i=0;i<data.length;i++){if(data[i].name.startsWith("V")){voltageData.push(data[i])}} Plotly.newPlot("voltagePlot",voltageData,${JSON.stringify(layout(unit))},${JSON.stringify(config)})`;
         htmlScript += vonltageDataScript
-        divScript += `<div id="voltagePlot"></div>
-        <button onclick="saveAsImage('voltagePlot')">↑Save as ${toImageFormat}</button>
-        `
+        divScript += `<div id="voltagePlot"></div><button onclick="saveAsImage('voltagePlot')">↑Save as ${toImageFormat}</button>`
     }
+    const compressedData = zstd.compressSync({ input: JSON.stringify(data) });
+    const compressedData64 = compressedData.toString('base64');
+    let selectData = `Plotly.newPlot("mixPlot",${JSON.stringify([])},${JSON.stringify(layout(unit))},${JSON.stringify(config)})`;
+    htmlScript += selectData;
+    let mixDataScript = `function rewritePlot(){var xname=document.getElementById("xaxisSelect").value;var yname=document.getElementById("yaxisSelect").value;var xData,yData;for(var i=0;i<data.length;i++){if(data[i].name==xname){xData=data[i].y} if(data[i].name==yname){yData=data[i].y}} var trace={x:xData,y:yData,type:'scatter'};var layout={xaxis:{title:xname},yaxis:{title:yname}};Plotly.newPlot('mixPlot',[trace],layout,${JSON.stringify(config)})}`;
+    htmlScript += mixDataScript;
+    let select = [];
+    select.push(`<option value="" selected disabled hidden>Select trace</option>`);
+    for (let i = 0; i < name.length; i++) {
+        select.push(`<option value="${name[i]}">${name[i]}</option>`);
+    }
+
+    divScript += `<div id="mixPlot"></div><label> X-axis </label><select id="xaxisSelect" onchange="rewritePlot()">${select.join("\n")}</select><label> Y-axis </label><select id="yaxisSelect" onchange="rewritePlot()">${select.join("\n")}</select><button onclick="saveAsImage('mixPlot')">↑Save as ${toImageFormat}</button>`;
+
     const showdata = {
         script: htmlScript,
         div: divScript
     }
     const saveImageConfig = `{format: '${toImageFormat}' , width: ${downloadImageWidth}, height: ${downloadImageHeight}}`
-    const result_html = `<!DOCTYPE html>
-    <html>
-        <head>
-        <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
-        <script src="https://cdn.plot.ly/plotly-latest.min.js" ></script>
-        </head>
-        <body>
-        ${showdata.div}
-        <script>
-            ${showdata.script}
-            function saveAsImage(id) {
-                var plotlyGraph = document.getElementById(id);
-                Plotly.toImage(plotlyGraph,${saveImageConfig})
-                    .then(function (url) {
-                        var a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'plot.${toImageFormat}';
-                        a.click();
-                    });
-            }
-        </script>
-        </body>
-    </html>
-  `;
+    const result_html = `<!doctypehtml><script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script><script src=https://cdn.plot.ly/plotly-latest.min.js></script><script src=https://unpkg.com/fzstd></script><script src=https://cdn.jsdelivr.net/npm/fzstd/umd/index.js></script>${showdata.div}<script>const compressedData64='${compressedData64}';const binStr=atob(compressedData64);const charCodes=new Uint8Array(binStr.length);for(let i=0;i<binStr.length;i++)charCodes[i]=binStr.charCodeAt(i);const decompressed=new TextDecoder().decode(fzstd.decompress(charCodes));const data=JSON.parse(decompressed);${showdata.script} function saveAsImage(id){var plotlyGraph=document.getElementById(id);Plotly.toImage(plotlyGraph,${saveImageConfig}).then(function(url){var a=document.createElement('a');a.href=url;a.download='plot.${toImageFormat}';a.click()})}</script>`;
     const outputHtmlPath = csvFilePath.replace(".csv", ".html");
     fs.writeFileSync(outputHtmlPath, result_html.replace("<!DOCTYPE html>\n", ""));
     return result_html
 }
 
-async function getFileNamesInFolder(folderPath: any) {
-    try {
-        const filesInfo = [];
-        const files = await vscode.workspace.findFiles(
-            new vscode.RelativePattern(folderPath, '*')
-        );
-
-        for (const file of files) {
-            const fileName = path.basename(file.fsPath);
-            const stats = fs.statSync(file.fsPath);
-            const createdTime = stats.birthtime.getTime();
-            filesInfo.push({ fileName, filePath: file.fsPath, createdTime });
-        }
-        let sortedFiles = filesInfo.sort((a, b) => b.createdTime - a.createdTime)
-        let returnArray: any = []
-        sortedFiles.forEach(file => {
-            returnArray.push(file.filePath)
-        })
-        return returnArray;
-    } catch (error) {
-        console.error('Error occurred while getting file names:', error);
-        return [];
-    }
-}
-
-async function autoDeleteTmpFiles(filenames: any) {
-    let basenameArray: any = []
-    let noDuplicates = []
-    filenames.forEach((file: any) => {
-        basenameArray.push(file.replace(/\..+/, ""))
-    })
-    noDuplicates = Array.from(new Set(basenameArray))
-
-    for (let i = Number(saveCount) - 1; i < noDuplicates.length; i++) {
-        let regexSource = noDuplicates[i] + "\..+"
-        let re = new RegExp(regexSource)
-        filenames.filter(function (value: any) { return value.match(re) }).forEach((fname: any) => {
-            fs.unlinkSync(fname)
-        })
-
-    }
-    // console.log(noDuplicates);
-}

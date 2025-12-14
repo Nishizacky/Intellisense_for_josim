@@ -3,7 +3,7 @@
   "publisher": "Nishizacky",
   "displayName": "Intellisense for josim",
   "description": "A intellisense for josim input text files",
-  "version": "0.6.6",
+  "version": "0.7.0",
   "icon": "fileicons/icon.png",
   "repository": {
     "type": "git",
@@ -167,7 +167,8 @@
     ]
   },
   "dependencies": {
-    "@fast-csv/parse": "^5.0.0"
+    "@fast-csv/parse": "^5.0.0",
+    "zstd.ts": "^1.1.3"
   },
   "devDependencies": {
     "@types/vscode": "^1.94.0",
