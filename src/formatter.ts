@@ -1,76 +1,95 @@
 import vscode from "vscode"
-const formatter = vscode.workspace.getConfiguration('formatter');
-const wordSpacing = <number>formatter.get("wordSpacing")
 
 export function jsmFormatter(document: vscode.TextDocument) {
-  let wordLengthMax = 0
-  let maxWord = ""
-  let stack = []
-  let newline = ""
-  let space = 16
-  let re = /\s+/g
-  let edits = []
-  let flag = 0
-  //一番文字数の大きい単語を探す
-  for (let i = 0; i < document.lineCount; i++) {
-    let singleLine = document.lineAt(i).text
-    let wordArray = singleLine.split(re)
-    if (!(singleLine.startsWith(".") || singleLine.startsWith("*"))) {
-      for (let j = 0; j < wordArray.length; j++) {
-        if (wordLengthMax < wordArray[j].length) {
-          wordLengthMax = wordArray[j].length
-          maxWord = wordArray[j]
+  const re = /\s+/g;
+  const spaceConfig = vscode.workspace.getConfiguration('formatter');
+  const spaceAmount = spaceConfig.get<number>("wordSpacing", 2);
+  const fullText = document.getText();
+  // .end以降は一切干渉しない
+  const linesAll = fullText.split(/\n/);
+  let endIndex = linesAll.findIndex(line => /\.end(\s|$)/.test(line.trim()));
+  let beforeEndText = "";
+  let afterEndText = "";
+  if (endIndex === -1) {
+    beforeEndText = fullText;
+  } else {
+    beforeEndText = linesAll.slice(0, endIndex).join("\n");
+    afterEndText = linesAll.slice(endIndex).join("\n");
+  }
+  console.log(beforeEndText);
+  console.log(afterEndText);
+
+
+  // 2回以上の改行でブロック分割（.endより前のみ）
+  const blocks = beforeEndText.split(/\n\n/);
+  let formattedBlocks: string[] = [];
+
+  for (let block of blocks) {
+    // ブロック内の行を取得
+    const blockLines = block.split(/\n/);
+    let lines: { original: string, words: string[] | null }[] = [];
+    let maxColumns = 0;
+    for (let singleLine of blockLines) {
+      let regex = /(^\.|\*|#|(\s+\n))|\+/;
+      if (regex.test(singleLine)) {
+        lines.push({ original: singleLine, words: null });
+        continue;
+      }
+      let words = singleLine.split(re).filter(word => word.length > 0);
+      lines.push({ original: singleLine, words });
+      maxColumns = Math.max(maxColumns, words.length);
+    }
+    // 各列の最大幅を計算
+    let columnWidths = new Array(maxColumns).fill(0);
+    for (let line of lines) {
+      if (line.words) {
+        for (let j = 0; j < line.words.length - 1; j++) {
+          columnWidths[j] = Math.max(columnWidths[j], line.words[j].length);
         }
       }
     }
-  }
-  //フォーマッター
-  for (let i = 0; i < document.lineCount; i++) {
-    let singleLine = document.lineAt(i).text
-    let regex = /(^\.|\*|#|(\s+\n))/
-    if (regex.test(singleLine)) continue;
-
-    stack = singleLine.split(re)
-    for (let j = 0; j < stack.length - 1; j++) {
-      newline += stack[j]
-      if (stack[j].includes("(")) {
-        flag = 1
+    // フォーマット
+    let formattedLines: string[] = [];
+    for (let line of lines) {
+      if (!line.words) {
+        formattedLines.push(line.original);
+        continue;
       }
-      if (stack[j].includes(")")) {
-        flag = 0
-      }
-      if (flag == 0) {
-        let repeatNum = 0
-        let subF = stack[j + 1].length
-        if (j == 0) { subF += stack[j].length }
-        repeatNum = wordSpacing - subF
-        while (repeatNum < 1) {
-          repeatNum += space
+      let newline = "";
+      let parflag = 0;
+      if (line.words.length > 0) {
+        for (let j = 0; j < line.words.length - 1; j++) {
+          newline += line.words[j];
+          if (line.words[j].includes("(")) { parflag += 1; }
+          if (line.words[j].includes(")") && parflag > 0) { parflag -= 1; }
+          let spacesToAdd = 0;
+          if (parflag < 1) {
+            spacesToAdd += columnWidths[j] - line.words[j].length + spaceAmount;
+          } else {
+            spacesToAdd += 1;
+          }
+          newline += " ".repeat(spacesToAdd);
         }
-        for (let h = 0; h < repeatNum; h++) {
-          newline += " "
-        }
+        newline += line.words[line.words.length - 1];
       }
-      else {
-        newline += " "
-      }
+      formattedLines.push(newline);
     }
-    newline += stack.pop()
-    edits.push(vscode.TextEdit.replace(document.lineAt(i).range, newline))
-    newline = ""
-    flag = 0
+    formattedBlocks.push(formattedLines.join("\n"));
   }
-  return edits
-}
 
-function blockSeparater(content: string): string[] {
-  return content.split("\n\n")
-}
+  // フォーマット済みブロックを2回以上の改行で結合
+  let formattedText = formattedBlocks.join("\n\n");
+  // .end以降はそのまま結合
+  if (afterEndText.length > 0) {
+    formattedText += "\n" + afterEndText;
+  }
 
-function formatOneBlock(block: string) {
-
-}
-
-function joinBlocks(blocks: string[]): string {
-  return blocks.join("\n\n")
+  // 全体を1つのTextEditで置換
+  return [vscode.TextEdit.replace(
+    new vscode.Range(
+      document.positionAt(0),
+      document.positionAt(fullText.length)
+    ),
+    formattedText
+  )];
 }

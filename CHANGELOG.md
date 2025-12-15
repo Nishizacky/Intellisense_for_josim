@@ -1,4 +1,25 @@
 # Change Log
+## [0.7.1]
+- fixed a bug that mixed plot did not work properly
+## [0.7.0]
+- added new plot named "mixed plot", that allow you to plot any variable against any variable
+- optimized html file size by using zstd compression, that means you feel hard to edit html file directly 
+## [0.6.6]
+- Removed loading animation
+- Changed default setting of whether create a new window or resuse an existing window to the former
+## [0.6.5]
+- fixed issues in formatter
+## [0.6.4]
+- fixed issues in formatter
+## [0.6.3]
+- fixed issues in formatter
+## [0.6.2]
+- Changed the formmater rule
+## [0.6.1]
+- Changed the notation of the y-axis label
+## [0.6.0]
+- Added a command to close all the plot window
+- Added an option whether create a plot window every time or reload a window
 ## [0.5.3]
 - Rmoved animation
 ## [0.5.2]
