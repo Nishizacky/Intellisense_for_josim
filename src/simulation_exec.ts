@@ -368,7 +368,7 @@ async function simulationResult2html(csvFilePath: any) {
         select.push(`<option value="${name[i]}">${name[i]}</option>`);
     }
 
-    divScript += `<div id="mixPlot"></div><label> X-axis </label><select id="xaxisSelect" onchange="rewritePlot()">${select.join("\n")}</select><label> Y-axis </label><select id="yaxisSelect" onchange="rewritePlot()">${select.join("\n")}</select><button onclick="saveAsImage('mixPlot')">↑Save as ${toImageFormat}</button>`;
+    divScript += `<div id="mixPlot"></div><label> X-axis </label><select id="xaxisSelect" onchange="rewritePlot()">${select.join("")}</select><label> Y-axis </label><select id="yaxisSelect" onchange="rewritePlot()">${select.join("")}</select><button onclick="saveAsImage('mixPlot')">↑Save as ${toImageFormat}</button>`;
 
     const showdata = {
         script: htmlScript,
