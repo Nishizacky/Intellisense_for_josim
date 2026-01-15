@@ -71,8 +71,8 @@ export async function showSimulationResult(uri: vscode.Uri, previewFlag: boolean
             progress.report({ increment: 0 });
             progress.report({ increment: 10, message: "Simulation progressing" });
             let resultFilePath = await simulation_exec(fspath);
-            progress.report({ increment: 70, message: "Exporting output file" });
-            let result_html = await simulationResult2html(resultFilePath);
+            progress.report({ increment: 20, message: "Exporting output file" });
+            let result_html = await simulationResult2html(resultFilePath,progress);
             if (previewFlag) {
                 progress.report({ increment: 80, message: "Loading HTML" });
                 ShowPlotDraw(result_html, fspath)
@@ -179,7 +179,7 @@ const config = {
     "editable": true
 };
 
-async function simulationResult2html(csvFilePath: any) {
+async function simulationResult2html(csvFilePath: any, progress: any) {
     let htmlScript = " ";
     let divScript = " ";
     let unit;
@@ -236,15 +236,16 @@ async function simulationResult2html(csvFilePath: any) {
         font: font
     }
 
-
-
+    progress.report({ increment: 30, message: "Extracting data from " + csvFilePath + ": " + fs.statSync(csvFilePath).size + " bytes" });
     let resolve = await getCsvResultFromSimulation(csvFilePath);
     // @ts-expect-error TS(2571): Object is of type 'unknown'.
     name = resolve[0];
     // @ts-expect-error TS(2571): Object is of type 'unknown'.
     resolve.shift();
     name.shift();
+    progress.report({ increment: 40, message: "Transposing data" });
     const transposed = transpose(resolve);
+    progress.report({ increment: 50, message: "Processing data scale" });
     let digitLength = 0
     switch (xaxisLabelPrefixUnit) {
         case "m":
@@ -265,6 +266,7 @@ async function simulationResult2html(csvFilePath: any) {
         default:
             break;
     }
+    progress.report({ increment: 60, message: "Mapping data" });
     time = transposed[0].map((val: any) => val * digitLength)
     value = transposed
     value.shift();
@@ -356,8 +358,14 @@ async function simulationResult2html(csvFilePath: any) {
         htmlScript += vonltageDataScript
         divScript += `<div id="voltagePlot"></div><button onclick="saveAsImage('voltagePlot')">↑Save as ${toImageFormat}</button>`
     }
-    const compressedData = zstd.compressSync({ input: JSON.stringify(data) });
-    const compressedData64 = compressedData.toString('base64');
+    progress.report({ increment: 70, message: "Compressing data" });
+    let compressedData64 = "";
+    try{
+        const compressedData = await zstd.compress({ input: JSON.stringify(data) , compressLevel: 2});
+        compressedData64 = compressedData.toString('base64');
+    }catch(e){
+        vscode.window.showErrorMessage("Compression failed: " + (e instanceof Error ? e.message : String(e)));
+    }
     let selectData = `Plotly.newPlot("mixPlot",${JSON.stringify([])},${JSON.stringify(layout(unit))},${JSON.stringify(config)});`;
     htmlScript += selectData;
     let mixDataScript = `function rewritePlot(){var xname=document.getElementById("xaxisSelect").value;var yname=document.getElementById("yaxisSelect").value;var xData,yData;for(var i=0;i<data.length;i++){if(data[i].name==xname){xData=data[i].y} if(data[i].name==yname){yData=data[i].y}} var trace={x:xData,y:yData,type:'scatter'};var layout={xaxis:{title:xname},yaxis:{title:yname}};Plotly.newPlot('mixPlot',[trace],layout,${JSON.stringify(config)})};`;
@@ -368,7 +376,7 @@ async function simulationResult2html(csvFilePath: any) {
         select.push(`<option value="${name[i]}">${name[i]}</option>`);
     }
 
-    divScript += `<div id="mixPlot"></div><label> X-axis </label><select id="xaxisSelect" onchange="rewritePlot()">${select.join("\n")}</select><label> Y-axis </label><select id="yaxisSelect" onchange="rewritePlot()">${select.join("\n")}</select><button onclick="saveAsImage('mixPlot')">↑Save as ${toImageFormat}</button>`;
+    divScript += `<div id="mixPlot"></div><label> X-axis </label><select id="xaxisSelect" onchange="rewritePlot()">${select.join("")}</select><label> Y-axis </label><select id="yaxisSelect" onchange="rewritePlot()">${select.join("")}</select><button onclick="saveAsImage('mixPlot')">↑Save as ${toImageFormat}</button>`;
 
     const showdata = {
         script: htmlScript,
@@ -377,6 +385,7 @@ async function simulationResult2html(csvFilePath: any) {
     const saveImageConfig = `{format: '${toImageFormat}' , width: ${downloadImageWidth}, height: ${downloadImageHeight}}`
     const result_html = `<!doctype html><script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script><script src=https://cdn.plot.ly/plotly-latest.min.js></script><script src=https://unpkg.com/fzstd></script><script src=https://cdn.jsdelivr.net/npm/fzstd/umd/index.js></script>${showdata.div}<script>const compressedData64='${compressedData64}';const binStr=atob(compressedData64);const charCodes=new Uint8Array(binStr.length);for(let i=0;i<binStr.length;i++)charCodes[i]=binStr.charCodeAt(i);const decompressed=new TextDecoder().decode(fzstd.decompress(charCodes));const data=JSON.parse(decompressed);${showdata.script} function saveAsImage(id){var plotlyGraph=document.getElementById(id);Plotly.toImage(plotlyGraph,${saveImageConfig}).then(function(url){var a=document.createElement('a');a.href=url;a.download='plot.${toImageFormat}';a.click()})}</script>`;
     const outputHtmlPath = csvFilePath.replace(".csv", ".html");
+    progress.report({ increment: 80, message: "Writing HTML file" });
     fs.writeFileSync(outputHtmlPath, result_html.replace("<!DOCTYPE html>\n", ""));
     return result_html
 }

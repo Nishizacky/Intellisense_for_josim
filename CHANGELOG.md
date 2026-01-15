@@ -1,6 +1,8 @@
 # Change Log
+## [0.7.2]
+- Fixed an issue where HTML output processing would time out when the sample count was extremely large.
 ## [0.7.1]
-- fixed a bug that mixed plot did not work properly
+- Fixed a bug that mixed plot did not work properly
 ## [0.7.0]
 - added new plot named "mixed plot", that allow you to plot any variable against any variable
 - optimized html file size by using zstd compression, that means you feel hard to edit html file directly 

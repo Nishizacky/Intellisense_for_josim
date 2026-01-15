@@ -4,3 +4,4 @@ dist
 .eslintrc
 .vscode
 .vsix
+*.DS_Store
