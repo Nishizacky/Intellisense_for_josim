@@ -48,7 +48,13 @@ export async function autoDeleteTmpFiles(filenames: any) {
         let regexSource = noDuplicates[i] + "\..+"
         let re = new RegExp(regexSource)
         filenames.filter(function (value: any) { return value.match(re) }).forEach((fname: any) => {
-            fs.unlinkSync(fname)
+            fs.unlink(fname, (err) => {
+                if (err) {
+                    console.error(`Failed to delete file ${fname}:`, err);
+                } else {
+                    console.log(`Deleted file: ${fname}`);
+                }
+            });
         })
 
     }

@@ -48,6 +48,8 @@ export async function showSimulationResult(uri: vscode.Uri, previewFlag: boolean
         vscode.window.showErrorMessage(message)
     } else {
         let tmp = await util.getFileNamesInFolder(path.join(path.dirname(fspath), "josim_resultCSV"))
+        console.log(tmp);
+        
         util.autoDeleteTmpFiles(tmp)
         //マージンを取る時もこれより下の部分を書き換えれば対応できる。
         return vscode.window.withProgress({
